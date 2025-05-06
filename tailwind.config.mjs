@@ -1,5 +1,6 @@
 // tailwind.config.mjs
-import { defineConfig } from 'tailwindcss'
+import tailwindcss from 'tailwindcss'
+const defineConfig = tailwindcss
 
 export default defineConfig({
 content: [
