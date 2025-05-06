@@ -3,7 +3,7 @@ export const darkMode = ["class"];
 export const content = [
 	"./app/**/*.{ts,tsx}",
 	"./components/**/*.{ts,tsx}",
-	"./node_modules/@shadcn/ui/**/*.{js,ts,tsx}",
+	"./node_modules/shadcn-ui/**/*.{js,ts,tsx}", // Updated path
 ];
 export const theme = {
 	extend: {
@@ -28,11 +28,10 @@ export const theme = {
 };
 export const plugins = [
 	require("tailwindcss-animate"),
-	require("tailwind-scrollbar")({ nocompatible: true }),
-	require("tailwindcss-children"),
-	require("tailwindcss-animatecss")({
-		infinite: true,
-	}),
+	// require("tailwindcss-children"),
+	// require("tailwindcss-animatecss")({
+	//   infinite: true,
+	// }),
 	require("@shadcn/ui/tailwind-plugins"),
 ];
 export const safelist = [
@@ -45,4 +44,5 @@ export const safelist = [
 	"bg-success",
 	"bg-error",
 	"bg-warning",
-	"bg-info
+	"bg-info",
+]
