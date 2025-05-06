@@ -4,6 +4,15 @@ module.exports = {
     content: [],
   theme: {
   	extend: {
+		keyframes: {
+			'spin-slow': {
+			  '0%':   { transform: 'rotate(0deg)' },
+			  '100%': { transform: 'rotate(360deg)' },
+			},
+		  },
+		  animation: {
+			'spin-slow': 'spin-slow 120s linear infinite',
+		  },
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
@@ -54,5 +63,6 @@ module.exports = {
   	}
   },
   plugins: [require("tailwindcss-animate")],
+  
 }
 
