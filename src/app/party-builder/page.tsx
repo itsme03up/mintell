@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DndContext, useSensor, useSensors, PointerSensor, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
 
 // Slot definitions
 type Slot = "MT" | "ST" | "H1" | "H2" | "D1" | "D2" | "D3" | "D4";
@@ -18,27 +18,18 @@ const initialSlots: Record<Slot, number | null> = {
   H2: null,
   D1: null,
   D2: null,
+  D3: null, // Added missing D3 slot
   D4: null,
 };
 
-// Member type definition
+// Member type definition updated to match members page
 interface Member {
   id: number;
   name: string;
+  server: string;
+  avatarUrl: string;
   // Potentially other fields like job, stats, etc.
 }
-
-// Dummy member data
-const dummyMembers: Member[] = [
-  { id: 1, name: "アリサ" },
-  { id: 2, name: "ボブ" },
-  { id: 3, name: "キャシー" },
-  { id: 4, name: "デイビッド" },
-  { id: 5, name: "エマ" },
-  { id: 6, name: "フランク" },
-  { id: 7, name: "グレース" },
-  { id: 8, name: "ヘンリー" },
-];
 
 // SortableItem component for displaying draggable members
 function SortableItem({ id, member }: { id: string; member: Member }) {
@@ -68,25 +59,49 @@ function SortableItem({ id, member }: { id: string; member: Member }) {
       style={style}
       {...attributes}
       {...listeners}
-      className="p-2 border border-input rounded bg-card shadow-sm hover:shadow-md"
+      className="p-2 border border-input rounded bg-card shadow-sm hover:shadow-md flex items-center space-x-2"
     >
-      {member.name}
+      <Image
+        src={member.avatarUrl}
+        alt={member.name}
+        width={32}
+        height={32}
+        className="rounded-full"
+      />
+      <span>{member.name}</span>
+      <span className="text-sm text-muted-foreground">{member.server}</span>
     </div>
   );
 }
 
 export default function PartyBuilderPage() {
   const [slots, setSlots] = useState(initialSlots);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
   const sensors = useSensors(useSensor(PointerSensor));
-  const sensors = useSensors(useSensor(PointerSensor));
+
+  // Fetch real members from API
+  useEffect(() => {
+    fetch("/api/members")
+      .then((res) => res.json())
+      .then((data: Member[]) => {
+        setMembers(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
-    if (over && active.data.current?.slot && over.id.startsWith("slot-")) {
+    if (over && active.data.current?.memberId && over.id.startsWith("slot-")) {
       const slotKey = over.id.replace("slot-", "") as Slot;
       setSlots((prev) => ({ ...prev, [slotKey]: active.data.current.memberId }));
     }
   };
+
+  if (loading) {
+    return <div>読み込み中...</div>;
+  }
 
   return (
     <div className="space-y-6 p-6">
@@ -98,26 +113,41 @@ export default function PartyBuilderPage() {
           <Card className="p-4">
             <h2 className="text-lg font-semibold mb-4">パーティスロット</h2>
             <div className="grid grid-cols-4 gap-2">
-              {Object.keys(slots).map((slot) => (
-                <div
-                  key={slot}
-                  id={`slot-${slot}`}
-                  className="h-12 border border-border rounded flex items-center justify-center"
-                >
-                  {slots[slot as Slot]
-                    ? dummyMembers.find((m) => m.id === slots[slot as Slot])?.name
-                    : slot}
-                </div>
-              ))}
+              {Object.keys(slots).map((slot) => {
+                const memberId = slots[slot as Slot];
+                const member = memberId !== null ? members.find((m) => m.id === memberId) : null;
+                
+                return (
+                  <div
+                    key={slot}
+                    id={`slot-${slot}`}
+                    className="h-16 border border-border rounded flex flex-col items-center justify-center p-1"
+                  >
+                    <div className="text-xs text-muted-foreground">{slot}</div>
+                    {member ? (
+                      <div className="flex flex-col items-center">
+                        <Image
+                          src={member.avatarUrl}
+                          alt={member.name}
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                        <div className="text-xs truncate max-w-full">{member.name}</div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
           </Card>
 
           {/* Member List */}
           <Card className="p-4">
             <h2 className="text-lg font-semibold mb-4">メンバー候補</h2>
-            <SortableContext items={dummyMembers.map((m) => `${m.id}`)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={members.map((m) => `${m.id}`)} strategy={verticalListSortingStrategy}>
               <div className="space-y-2">
-                {dummyMembers.map((member) => (
+                {members.map((member) => (
                   <SortableItem key={member.id} id={`${member.id}`} member={member} />
                 ))}
               </div>
@@ -126,7 +156,7 @@ export default function PartyBuilderPage() {
         </div>
 
         <div>
-          <Button variant="primary">PTを保存</Button>
+          <Button variant="default">PTを保存</Button>
         </div>
       </DndContext>
 
@@ -134,37 +164,46 @@ export default function PartyBuilderPage() {
       <Card className="p-4">
         <h2 className="text-lg font-semibold mb-4">装備ステータス</h2>
         <Table>
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>メンバー</Table.Head>
-              <Table.Head>武器</Table.Head>
-              <Table.Head>頭</Table.Head>
-              <Table.Head>胴</Table.Head>
-              <Table.Head>手</Table.Head>
-              <Table.Head>脚</Table.Head>
-              <Table.Head>足</Table.Head>
+          <TableHeader>
+            <TableRow>
+              <TableHead>メンバー</TableHead>
+              <TableHead>武器</TableHead>
+              <TableHead>頭</TableHead>
+              <TableHead>胴</TableHead>
+              <TableHead>手</TableHead>
+              <TableHead>脚</TableHead>
+              <TableHead>足</TableHead>
               {/* 他の部位 */}
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {Object.values(slots)
               .filter((id): id is number => id !== null)
               .map((memberId) => {
-                const member = dummyMembers.find((m) => m.id === memberId)!;
+                const member = members.find((m) => m.id === memberId)!;
                 return (
-                  <Table.Row key={member.id}>
-                    <Table.Cell>{member.name}</Table.Cell>
+                  <TableRow key={member.id}>
+                    <TableCell className="flex items-center space-x-2">
+                      <Image
+                        src={member.avatarUrl}
+                        alt={member.name}
+                        width={24}
+                        height={24}
+                        className="rounded-full"
+                      />
+                      <span>{member.name}</span>
+                    </TableCell>
                     {/* ダミー○×ステータス */}
-                    <Table.Cell>○</Table.Cell>
-                    <Table.Cell>×</Table.Cell>
-                    <Table.Cell>○</Table.Cell>
-                    <Table.Cell>×</Table.Cell>
-                    <Table.Cell>○</Table.Cell>
-                    <Table.Cell>×</Table.Cell>
-                  </Table.Row>
+                    <TableCell>○</TableCell>
+                    <TableCell>×</TableCell>
+                    <TableCell>○</TableCell>
+                    <TableCell>×</TableCell>
+                    <TableCell>○</TableCell>
+                    <TableCell>×</TableCell>
+                  </TableRow>
                 );
               })}
-          </Table.Body>
+          </TableBody>
         </Table>
       </Card>
     </div>
