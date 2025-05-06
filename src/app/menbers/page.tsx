@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Table } from "@/components/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -37,38 +44,31 @@ export default function MembersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">FCメンバー一覧</h1>
-        <Button variant="secondary" onClick={() => setShowInactiveOnly((v) => !v)}>
-          {showInactiveOnly ? "全員表示" : "非アクティブのみ"}
-        </Button>
-      </div>
-
       <Card className="p-4">
         <Table>
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>名前</Table.Head>
-              <Table.Head>最終ログイン</Table.Head>
-              <Table.Head>進行度</Table.Head>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
+          <TableHeader>
+            <TableRow>
+              <TableHead>名前</TableHead>
+              <TableHead>最終ログイン</TableHead>
+              <TableHead>進行度</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {displayed.map((m) => (
-              <Table.Row
+              <TableRow
                 key={m.id}
                 className={isInactive(m.lastLogin) ? "bg-red-50" : undefined}
               >
-                <Table.Cell>{m.name}</Table.Cell>
-                <Table.Cell>{m.lastLogin}</Table.Cell>
-                <Table.Cell>
+                <TableCell>{m.name}</TableCell>
+                <TableCell>{m.lastLogin}</TableCell>
+                <TableCell>
                   <Badge variant="outline">{m.progress}</Badge>
-                </Table.Cell>
-              </Table.Row>
+                </TableCell>
+              </TableRow>
             ))}
-          </Table.Body>
-        </Table>
-      </Card>
-    </div>
-  );
-}
+          </TableBody>
+            </Table>
+          </Card>
+        </div>
+      );
+    }
