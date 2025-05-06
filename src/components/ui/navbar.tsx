@@ -19,7 +19,9 @@ const navLinks = [
 export function Navbar() {
   return (
     <NavigationMenu className="relative z-50 bg-[hsl(var(--minfilia-black))] text-minfilia-cream p-4 w-full">
+      {/* ↑ ナビゲーションバー全体のスタイル（背景色、パディングなど）を確認・変更 */}
       <NavigationMenuList className="flex flex-row justify-start space-x-2 w-full">
+        {/* ↑ リストアイテムのレイアウト（フレックス方向、アイテム間のスペースなど）を確認・変更 */}
         {navLinks.map((link) => (
           <NavigationMenuItem key={link.href}>
             <NavLink href={link.href}>{link.label}</NavLink>
@@ -41,6 +43,7 @@ export function NavLink({
     <Link
       href={href}
       className="px-4 py-2 hover:text-minfilia-pink transition-colors"
+      // ↑ 個々のリンクのスタイル（パディング、ホバー時の色など）を確認・変更
     >
       {children}
     </Link>
