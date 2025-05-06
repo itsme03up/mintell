@@ -7,8 +7,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -65,6 +63,27 @@
   }
 }
 
+:root {
+  /* Minfilia カラーを HSL フォーマットで定義 */
+  --minfilia-pink:       330 100% 78%;  /* #FF8FC7 */
+  --minfilia-purple:     273  67% 39%;  /* #6B21A8 */
+  --minfilia-cream:       40 100% 94%;  /* #FFF5E1 */
+  --minfilia-black:        0   0%  6%;  /* #0F0F0F */
+  --minfilia-silver:      0   0% 75%;  /* #C0C0C0 */
+
+  /* CSS 変数を Tailwind のカラーパレット用変数にマッピング */
+  --primary:              var(--minfilia-pink);
+  --primary-foreground:   0   0% 100%;  /* 白文字 */
+  --secondary:            var(--minfilia-purple);
+  --secondary-foreground: 0   0% 100%;
+  --accent:               var(--minfilia-cream);
+  --accent-foreground:    var(--minfilia-black);
+  --background:           var(--minfilia-cream);
+  --foreground:           var(--minfilia-black);
+  --border:               var(--minfilia-silver);
+  --input:                var(--minfilia-cream);
+  --ring:                 var(--minfilia-purple);
+}
 
 
 @layer base {
