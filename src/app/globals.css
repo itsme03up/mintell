@@ -1,19 +1,12 @@
-@import "tailwindcss";
+/* Import Google Fonts first */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;700&display=swap');
+
+/* Tailwind Directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-/* globals.css */
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;700&display=swap');
-body { font-family: 'Inter', sans-serif; }
-h1, h2, h3 { font-family: 'DM Serif Display', serif; }
-
+/* Core Theme Variables */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -42,6 +35,10 @@ h1, h2, h3 { font-family: 'DM Serif Display', serif; }
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+}
+
+/* Dark mode overrides */
+@layer base {
   .dark {
     --background: 224 71.4% 4.1%;
     --foreground: 210 20% 98%;
@@ -70,17 +67,16 @@ h1, h2, h3 { font-family: 'DM Serif Display', serif; }
   }
 }
 
+/* Minfilia Palette */
 :root {
-  /* Minfilia カラーを HSL フォーマットで定義 */
   --minfilia-pink:       330 100% 78%;  /* #FF8FC7 */
   --minfilia-purple:     273  67% 39%;  /* #6B21A8 */
   --minfilia-cream:       40 100% 94%;  /* #FFF5E1 */
   --minfilia-black:        0   0%  6%;  /* #0F0F0F */
   --minfilia-silver:      0   0% 75%;  /* #C0C0C0 */
 
-  /* CSS 変数を Tailwind のカラーパレット用変数にマッピング */
   --primary:              var(--minfilia-pink);
-  --primary-foreground:   0   0% 100%;  /* 白文字 */
+  --primary-foreground:   0   0% 100%;
   --secondary:            var(--minfilia-purple);
   --secondary-foreground: 0   0% 100%;
   --accent:               var(--minfilia-cream);
@@ -92,12 +88,12 @@ h1, h2, h3 { font-family: 'DM Serif Display', serif; }
   --ring:                 var(--minfilia-purple);
 }
 
-
+/* Base styles */
 @layer base {
-  * {
+  *, *::before, *::after {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }
