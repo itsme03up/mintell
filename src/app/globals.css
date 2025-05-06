@@ -6,6 +6,10 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+/* globals.css */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;700&display=swap');
+body { font-family: 'Inter', sans-serif; }
+h1, h2, h3 { font-family: 'DM Serif Display', serif; }
 
 @layer base {
   :root {
