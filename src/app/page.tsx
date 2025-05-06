@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Button, Card } from "@/components/ui";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import Hero from "@/components/ui/Hero";
 
 export const metadata = {
