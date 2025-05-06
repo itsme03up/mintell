@@ -1,12 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // turbopack は experimental から移動して最上位に配置
-  turbopack: true,
-  
-  // transpilePackages は experimental から最上位に移動
-  transpilePackages: [], // 必要なパッケージをここに追加
-  
-  // 他の設定があればここに追加
-}
+  experimental: {
+    turbo: {
+      // your turbo options here
+    }
+  }
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

@@ -1,6 +1,6 @@
 'use client';
 import Hero from "@/components/ui/Hero";
-import Card from "@/components/ui/Card";
+import Card from "@/components/ui/card";
 
 export default function HomePage() {
   return (
