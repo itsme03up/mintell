@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DndContext, useSensor, useSensors, PointerSensor, DragEndEvent } from "@dnd-kit/core";
-import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 // Slot definitions
@@ -91,11 +91,19 @@ export default function PartyBuilderPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.data.current?.memberId && over.id.startsWith("slot-")) {
-      const slotKey = over.id.replace("slot-", "") as Slot;
-      setSlots((prev) => ({ ...prev, [slotKey]: active.data.current.memberId }));
+    // Ensure active.data.current exists and its memberId property is a number.
+    // Also ensure over.id is a slot ID.
+    if (
+      over &&
+      active.data.current && // Check active.data.current is not undefined
+      typeof active.data.current.memberId === 'number' && // Check memberId is a number
+      String(over.id).startsWith("slot-")
+    ) {
+      const memberId = active.data.current.memberId; // memberId is now safely typed as number
+      const slotKey = String(over.id).replace("slot-", "") as Slot;
+      setSlots((prev) => ({ ...prev, [slotKey]: memberId }));
     }
   };
 
