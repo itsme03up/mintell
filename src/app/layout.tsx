@@ -1,3 +1,5 @@
+"use client";
+import "@/styles/globals.css";
 import { Navbar, NavLink } from "@/components/ui/navbar"
 import { RotatingBackground } from "@/components/RotatingBackground";
 
