@@ -1,5 +1,5 @@
 // src/app/gear/layer/[layer]/page.tsx
-
+"use client";
 import React from "react";
 
 interface GearLayerPageProps {
