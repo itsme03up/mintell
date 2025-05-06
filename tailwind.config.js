@@ -7,63 +7,42 @@ export const content = [
 ];
 export const theme = {
 	extend: {
-		keyframes: {
-			'spin-slow': {
-				'0%': { transform: 'rotate(0deg)' },
-				'100%': { transform: 'rotate(360deg)' },
-			},
-		},
-		animation: {
-			'spin-slow': 'spin-slow 120s linear infinite',
-		},
-		borderRadius: {
-			lg: 'var(--radius)',
-			md: 'calc(var(--radius) - 2px)',
-			sm: 'calc(var(--radius) - 4px)'
-		},
 		colors: {
-			background: 'hsl(var(--background))',
-			foreground: 'hsl(var(--foreground))',
-			card: {
-				DEFAULT: 'hsl(var(--card))',
-				foreground: 'hsl(var(--card-foreground))'
-			},
-			popover: {
-				DEFAULT: 'hsl(var(--popover))',
-				foreground: 'hsl(var(--popover-foreground))'
-			},
-			primary: {
-				DEFAULT: 'hsl(var(--primary))',
-				foreground: 'hsl(var(--primary-foreground))'
-			},
-			secondary: {
-				DEFAULT: 'hsl(var(--secondary))',
-				foreground: 'hsl(var(--secondary-foreground))'
-			},
-			muted: {
-				DEFAULT: 'hsl(var(--muted))',
-				foreground: 'hsl(var(--muted-foreground))'
-			},
-			accent: {
-				DEFAULT: 'hsl(var(--accent))',
-				foreground: 'hsl(var(--accent-foreground))'
-			},
-			destructive: {
-				DEFAULT: 'hsl(var(--destructive))',
-				foreground: 'hsl(var(--destructive-foreground))'
-			},
-			border: 'hsl(var(--border))',
-			input: 'hsl(var(--input))',
-			ring: 'hsl(var(--ring))',
-			chart: {
-				'1': 'hsl(var(--chart-1))',
-				'2': 'hsl(var(--chart-2))',
-				'3': 'hsl(var(--chart-3))',
-				'4': 'hsl(var(--chart-4))',
-				'5': 'hsl(var(--chart-5))'
-			}
-		}
-	}
+			primary: "#1e3a8a",
+			secondary: "#64748b",
+			accent: "#fbbf24",
+			background: "#f9fafb",
+			text: "#111827",
+			muted: "#6b7280",
+			success: "#22c55e",
+			error: "#ef4444",
+			warning: "#f59e0b",
+			info: "#3b82f6",
+			'minfilia-pink': '#FF8FC7',
+			'minfilia-purple': '#6B21A8',
+			'minfilia-cream': '#FFF5E1',
+			'minfilia-black': '#0F0F0F',
+			'minfilia-silver':'#C0C0C0',
+		},
+	},
 };
-export const plugins = [require("tailwindcss-animate")];
-
+export const plugins = [
+	require("tailwindcss-animate"),
+	require("tailwind-scrollbar")({ nocompatible: true }),
+	require("tailwindcss-children"),
+	require("tailwindcss-animatecss")({
+		infinite: true,
+	}),
+	require("@shadcn/ui/tailwind-plugins"),
+];
+export const safelist = [
+	"bg-primary",
+	"bg-secondary",
+	"bg-accent",
+	"bg-background",
+	"bg-text",
+	"bg-muted",
+	"bg-success",
+	"bg-error",
+	"bg-warning",
+	"bg-info
