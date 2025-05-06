@@ -1,48 +1,57 @@
 /** @type {import('tailwindcss').Config} */
-export const darkMode = ["class"];
-export const content = [
-	"./app/**/*.{ts,tsx}",
-	"./components/**/*.{ts,tsx}",
-	"./node_modules/shadcn-ui/**/*.{js,ts,tsx}", // Updated path
-];
-export const theme = {
-	extend: {
+module.exports = {
+	content: [
+	  './app/**/*.{ts,tsx}',
+	  './src/app/**/*.{ts,tsx}',
+	  './components/**/*.{ts,tsx}',
+	  './node_modules/@shadcn/ui/**/*.{js,ts,tsx}'
+	],
+	theme: {
+	  extend: {
 		colors: {
-			primary: "#1e3a8a",
-			secondary: "#64748b",
-			accent: "#fbbf24",
-			background: "#f9fafb",
-			text: "#111827",
-			muted: "#6b7280",
-			success: "#22c55e",
-			error: "#ef4444",
-			warning: "#f59e0b",
-			info: "#3b82f6",
-			'minfilia-pink': '#FF8FC7',
-			'minfilia-purple': '#6B21A8',
-			'minfilia-cream': '#FFF5E1',
-			'minfilia-black': '#0F0F0F',
-			'minfilia-silver':'#C0C0C0',
-		},
+		  background: 'hsl(var(--background))',
+		  foreground: 'hsl(var(--foreground))',
+		  card: {
+			DEFAULT: 'hsl(var(--card))',
+			foreground: 'hsl(var(--card-foreground))'
+		  },
+		  popover: {
+			DEFAULT: 'hsl(var(--popover))',
+			foreground: 'hsl(var(--popover-foreground))'
+		  },
+		  primary: {
+			DEFAULT: 'hsl(var(--primary))',
+			foreground: 'hsl(var(--primary-foreground))'
+		  },
+		  secondary: {
+			DEFAULT: 'hsl(var(--secondary))',
+			foreground: 'hsl(var(--secondary-foreground))'
+		  },
+		  muted: {
+			DEFAULT: 'hsl(var(--muted))',
+			foreground: 'hsl(var(--muted-foreground))'
+		  },
+		  accent: {
+			DEFAULT: 'hsl(var(--accent))',
+			foreground: 'hsl(var(--accent-foreground))'
+		  },
+		  destructive: {
+			DEFAULT: 'hsl(var(--destructive))',
+			foreground: 'hsl(var(--destructive-foreground))'
+		  },
+		  border: 'hsl(var(--border))',
+		  input: 'hsl(var(--input))',
+		  ring: 'hsl(var(--ring))',
+		  chart: {
+			1: 'hsl(var(--chart-1))',
+			2: 'hsl(var(--chart-2))',
+			3: 'hsl(var(--chart-3))',
+			4: 'hsl(var(--chart-4))',
+			5: 'hsl(var(--chart-5))'
+		  }
+		}
+	  }
 	},
-};
-export const plugins = [
-	require("tailwindcss-animate"),
-	// require("tailwindcss-children"),
-	// require("tailwindcss-animatecss")({
-	//   infinite: true,
-	// }),
-	require("@shadcn/ui/tailwind-plugins"),
-];
-export const safelist = [
-	"bg-primary",
-	"bg-secondary",
-	"bg-accent",
-	"bg-background",
-	"bg-text",
-	"bg-muted",
-	"bg-success",
-	"bg-error",
-	"bg-warning",
-	"bg-info",
-]
+	plugins: []
+  };
+  
