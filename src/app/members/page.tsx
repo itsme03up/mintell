@@ -1,84 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
+Table,
+TableHeader,
+TableRow,
+TableHead,
+TableBody,
+TableCell,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
-type Member = {
-  id: number;
-  name: string;
-  lastLogin: string; // YYYY-MM-DD
-  progress: string;
-};
-
-const dummyMembers: Member[] = [
-  { id: 1, name: "Minfilia", lastLogin: "2025-05-01", progress: "EW_60" },
-  { id: 2, name: "Alice", lastLogin: "2025-04-20", progress: "SB" },
-  { id: 3, name: "Bob", lastLogin: "2025-03-15", progress: "ARR" },
-  // 他のダミーメンバー
-];
-
-/** 未ログイン日数が閾値以上か判定 */
-function isInactive(dateStr: string, thresholdDays = 15) {
-  const last = new Date(dateStr);
-  const diffDays = (Date.now() - last.getTime()) / (1000 * 60 * 60 * 24);
-  return diffDays >= thresholdDays;
+interface Member {
+id: number;
+name: string;
+server: string;
+avatarUrl: string;
 }
 
 export default function MembersPage() {
-  const [showInactiveOnly, setShowInactiveOnly] = useState(false);
+const [members, setMembers] = useState<Member[]>([]);
+const [loading, setLoading] = useState(true);
+const [showInactiveOnly, setShowInactiveOnly] = useState(false);
 
-  const displayed = dummyMembers.filter((m) => {
-    if (showInactiveOnly) return isInactive(m.lastLogin);
-    return true;
-  });
+useEffect(() => {
+fetch("/api/members")
+.then((res) => res.json())
+.then((data: Member[]) => {
+setMembers(data);
+setLoading(false);
+})
+.catch(() => setLoading(false));
+}, []);
 
-  return (
-    <div className="space-y-4">
-      <Card className="p-4">
-        <div className="mb-4 flex items-center">
-          <label className="flex items-center space-x-2 text-sm text-muted cursor-pointer">
-            <input 
-              type="checkbox" 
-              checked={showInactiveOnly}
-              onChange={e => setShowInactiveOnly(e.target.checked)}
-              className="rounded border-gray-300 text-minfilia-purple focus:ring-minfilia-purple"
-            />
-            <span>未ログインメンバーのみ表示</span>
-          </label>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>名前</TableHead>
-              <TableHead>最終ログイン</TableHead>
-              <TableHead>進行度</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {displayed.map((m) => (
-              <TableRow
-                key={m.id}
-                className={isInactive(m.lastLogin) ? "bg-red-50" : undefined}
-              >
-                <TableCell>{m.name}</TableCell>
-                <TableCell>{m.lastLogin}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{m.progress}</Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
-    </div>
-  );
+if (loading) {
+return <div>読み込み中...</div>;
+}
+
+return ( <div className="space-y-4"> <Card className="p-4"> <div className="mb-4"> <label className="flex items-center space-x-2 text-sm text-muted cursor-pointer">
+\<Checkbox
+id="filter-inactive"
+checked={showInactiveOnly}
+onCheckedChange={(checked) => setShowInactiveOnly(checked as boolean)}
+className="rounded border-gray-300 text-minfilia-purple focus\:ring-minfilia-purple"
+/> <Label htmlFor="filter-inactive">未ログインメンバーのみ表示</Label> </label> </div> <Table> <TableHeader> <TableRow> <TableHead>名前</TableHead> <TableHead>サーバー</TableHead> </TableRow> </TableHeader> <TableBody>
+{members
+.filter((m) => {
+// TODO: 未ログイン判定用 lastLogin を取得次第フィルタを適用
+return !showInactiveOnly;
+})
+.map((m) => ( <TableRow key={m.id}> <TableCell> <Image
+                   src={m.avatarUrl}
+                   alt={m.name}
+                   width={32}
+                   height={32}
+                   className="rounded-full"
+                 /> </TableCell> <TableCell>{m.name}</TableCell> <TableCell>{m.server}</TableCell> </TableRow>
+))} </TableBody> </Table> </Card> </div>
+);
 }
