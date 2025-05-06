@@ -1,6 +1,6 @@
 import "@/styles/globals.css";
 import { Inter } from "next/font/google";
-import { Navbar, NavLink } from "@/components/ui"; // shadcn-ui 由来
+import { Navbar, NavLink } from "@/components/ui/navigation-menu"; // shadcn-ui 由来
 
 const inter = Inter({ subsets: ["latin"] });
 
