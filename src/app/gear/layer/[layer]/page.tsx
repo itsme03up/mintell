@@ -2,17 +2,13 @@
 "use client";
 import React from "react";
 
-/**
- * Props for the GearLayerPage component.
- */
-interface GearLayerPageProps {
-  params: {
-    layer: string;
-  };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
-
-export default function GearLayerPage({ params }: GearLayerPageProps) {
+// Remove the custom interface and use the correct parameter typing
+export default function GearLayerPage({
+  params,
+}: {
+  params: { layer: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const { layer } = params;
   return (
     <div className="space-y-4">
