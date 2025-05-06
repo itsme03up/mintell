@@ -44,6 +44,17 @@ export default function MembersPage() {
   return (
     <div className="space-y-4">
       <Card className="p-4">
+        <div className="mb-4 flex items-center">
+          <label className="flex items-center space-x-2 text-sm text-muted cursor-pointer">
+            <input 
+              type="checkbox" 
+              checked={showInactiveOnly}
+              onChange={e => setShowInactiveOnly(e.target.checked)}
+              className="rounded border-gray-300 text-minfilia-purple focus:ring-minfilia-purple"
+            />
+            <span>未ログインメンバーのみ表示</span>
+          </label>
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
@@ -66,8 +77,8 @@ export default function MembersPage() {
               </TableRow>
             ))}
           </TableBody>
-            </Table>
-          </Card>
-        </div>
-      );
-    }
+        </Table>
+      </Card>
+    </div>
+  );
+}
