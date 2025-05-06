@@ -5,54 +5,26 @@ import {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
-  NavigationMenuTrigger,
-  NavigationMenuContent,
-  NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
+
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/members", label: "メンバー管理" },
+  { href: "/gear", label: "零式管理" },
+  { href: "/party-builder", label: "PTビルダー" },
+  { href: "/events", label: "イベント" },
+  { href: "/schedule", label: "スケジュール" },
+];
 
 export function Navbar() {
   return (
-    <NavigationMenu className="bg-minfilia-black text-minfilia-cream p-4">
-      <NavigationMenuList className="flex space-x-6">
-        <NavigationMenuItem>
-          <NavigationMenuTrigger className="text-lg font-bold hover:text-minfilia-pink">
-            Menu
-          </NavigationMenuTrigger>
-          <NavigationMenuContent className="bg-minfilia-cream text-minfilia-black p-4 rounded-lg shadow-lg">
-            <ul className="space-y-2">
-              <li>
-                <NavigationMenuLink asChild>
-                  <Link href="/">Home</Link>
-                </NavigationMenuLink>
-              </li>
-              <li>
-                <NavigationMenuLink asChild>
-                  <Link href="/members">メンバー管理</Link>
-                </NavigationMenuLink>
-              </li>
-              <li>
-                <NavigationMenuLink asChild>
-                  <Link href="/gear">零式管理</Link>
-                </NavigationMenuLink>
-              </li>
-              <li>
-                <NavigationMenuLink asChild>
-                  <Link href="/party-builder">PTビルダー</Link>
-                </NavigationMenuLink>
-              </li>
-              <li>
-                <NavigationMenuLink asChild>
-                  <Link href="/events">イベント</Link>
-                </NavigationMenuLink>
-              </li>
-              <li>
-                <NavigationMenuLink asChild>
-                  <Link href="/schedule">スケジュール</Link>
-                </NavigationMenuLink>
-              </li>
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
+    <NavigationMenu className="relative z-50 bg-[hsl(var(--minfilia-black))] text-minfilia-cream p-4 w-full">
+      <NavigationMenuList className="flex flex-row justify-start space-x-2 w-full">
+        {navLinks.map((link) => (
+          <NavigationMenuItem key={link.href}>
+            <NavLink href={link.href}>{link.label}</NavLink>
+          </NavigationMenuItem>
+        ))}
       </NavigationMenuList>
     </NavigationMenu>
   );

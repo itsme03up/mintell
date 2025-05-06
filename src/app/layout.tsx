@@ -10,7 +10,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* 背景の回転パターン */}
         <RotatingBackground />   {/* 背景の回転パターン */}
         <Navbar />
-        <main className="p-4">{children}</main>
+        <main className="relative z-10 p-4">{children}</main>
       </body>
     </html>
   )
