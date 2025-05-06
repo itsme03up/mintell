@@ -1,10 +1,6 @@
-import Link from "next/link";
+'use client';
 import Hero from "@/components/ui/Hero";
-
-export const metadata = {
-  title: "FF14 FC 管理ダッシュボード",
-  description: "MinfiliaとともにFC管理をサクサク進めよう",
-};
+import Link from "next/link";
 
 export default function HomePage() {
   return (
@@ -21,12 +17,12 @@ export default function HomePage() {
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">FCメンバーのログイン状況やストーリー進行度を確認</p>
             </div>
             <div className="px-6 pb-6">
-              <a 
+              <Link
                 href="/members"
                 className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition duration-150"
               >
                 移動
-              </a>
+              </Link>
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -35,12 +31,12 @@ export default function HomePage() {
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">IL760零式装備の所持状況を管理</p>
             </div>
             <div className="px-6 pb-6">
-              <a 
+              <Link
                 href="/gear/layer/1"
                 className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition duration-150"
               >
                 移動
-              </a>
+              </Link>
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -49,12 +45,12 @@ export default function HomePage() {
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">ドラッグ＆ドロップでPTを組成して保存</p>
             </div>
             <div className="px-6 pb-6">
-              <a 
+              <Link
                 href="/party-builder"
                 className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition duration-150"
               >
                 移動
-              </a>
+              </Link>
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -63,12 +59,12 @@ export default function HomePage() {
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">カレンダーでイベントを作成・管理</p>
             </div>
             <div className="px-6 pb-6">
-              <a 
+              <Link
                 href="/events"
                 className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition duration-150"
               >
                 移動
-              </a>
+              </Link>
             </div>
           </div>
         </div>
