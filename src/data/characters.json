@@ -6,7 +6,9 @@
     "dataCenter": "Gaia",
     "group": "事務所スタッフ",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-01",
+    "isHidden": false
   },
   {
     "id": 2,
@@ -15,7 +17,9 @@
     "dataCenter": "Gaia",
     "group": "０期生",
     "metric": 83,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-25",
+    "isHidden": false
   },
   {
     "id": 3,
@@ -24,7 +28,9 @@
     "dataCenter": "Gaia",
     "group": "０期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": null,
+    "isHidden": false
   },
   {
     "id": 4,
@@ -33,7 +39,9 @@
     "dataCenter": "Gaia",
     "group": "０期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-09-10",
+    "isHidden": false
   },
   {
     "id": 5,
@@ -42,7 +50,9 @@
     "dataCenter": "Gaia",
     "group": "０期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-28",
+    "isHidden": false
   },
   {
     "id": 6,
@@ -51,7 +61,9 @@
     "dataCenter": "Gaia",
     "group": "１期生",
     "metric": 88,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-02",
+    "isHidden": false
   },
   {
     "id": 7,
@@ -60,7 +72,9 @@
     "dataCenter": "Gaia",
     "group": "１期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-20",
+    "isHidden": false
   },
   {
     "id": 8,
@@ -69,7 +83,9 @@
     "dataCenter": "Gaia",
     "group": "１期生",
     "metric": 85,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-15",
+    "isHidden": false
   },
   {
     "id": 9,
@@ -78,7 +94,9 @@
     "dataCenter": "Gaia",
     "group": "１期生",
     "metric": 67,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-05",
+    "isHidden": false
   },
   {
     "id": 10,
@@ -87,7 +105,9 @@
     "dataCenter": "Gaia",
     "group": "１期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-25",
+    "isHidden": false
   },
   {
     "id": 11,
@@ -96,7 +116,9 @@
     "dataCenter": "Gaia",
     "group": "１期生",
     "metric": 50,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-01",
+    "isHidden": false
   },
   {
     "id": 12,
@@ -105,7 +127,9 @@
     "dataCenter": "Gaia",
     "group": "１期生",
     "metric": 80,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-18",
+    "isHidden": false
   },
   {
     "id": 13,
@@ -114,7 +138,9 @@
     "dataCenter": "Gaia",
     "group": "１期生",
     "metric": 90,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-22",
+    "isHidden": false
   },
   {
     "id": 14,
@@ -123,7 +149,9 @@
     "dataCenter": "Gaia",
     "group": "２期生",
     "metric": 90,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-10",
+    "isHidden": false
   },
   {
     "id": 15,
@@ -132,7 +160,9 @@
     "dataCenter": "Gaia",
     "group": "２期生",
     "metric": 64,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-05",
+    "isHidden": false
   },
   {
     "id": 16,
@@ -141,7 +171,9 @@
     "dataCenter": "Gaia",
     "group": "２期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-25",
+    "isHidden": false
   },
   {
     "id": 17,
@@ -150,7 +182,9 @@
     "dataCenter": "Gaia",
     "group": "２期生",
     "metric": 90,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-20",
+    "isHidden": false
   },
   {
     "id": 18,
@@ -159,7 +193,9 @@
     "dataCenter": "Gaia",
     "group": "２期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-28",
+    "isHidden": false
   },
   {
     "id": 19,
@@ -168,7 +204,9 @@
     "dataCenter": "Gaia",
     "group": "２期生",
     "metric": 45,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-01",
+    "isHidden": false
   },
   {
     "id": 20,
@@ -177,7 +215,9 @@
     "dataCenter": "Gaia",
     "group": "２期生",
     "metric": 90,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-15",
+    "isHidden": false
   },
   {
     "id": 21,
@@ -186,7 +226,9 @@
     "dataCenter": "Gaia",
     "group": "３期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-25",
+    "isHidden": false
   },
   {
     "id": 22,
@@ -195,7 +237,9 @@
     "dataCenter": "Gaia",
     "group": "３期生",
     "metric": 76,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-10",
+    "isHidden": false
   },
   {
     "id": 23,
@@ -204,7 +248,9 @@
     "dataCenter": "Gaia",
     "group": "３期生",
     "metric": 90,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-20",
+    "isHidden": false
   },
   {
     "id": 24,
@@ -213,7 +259,9 @@
     "dataCenter": "Gaia",
     "group": "３期生",
     "metric": 65,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-05",
+    "isHidden": false
   },
   {
     "id": 25,
@@ -222,7 +270,9 @@
     "dataCenter": "Gaia",
     "group": "３期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-28",
+    "isHidden": false
   },
   {
     "id": 26,
@@ -231,7 +281,9 @@
     "dataCenter": "Gaia",
     "group": "３期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-25",
+    "isHidden": false
   },
   {
     "id": 27,
@@ -240,7 +292,9 @@
     "dataCenter": "Gaia",
     "group": "３期生",
     "metric": 60,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-01",
+    "isHidden": false
   },
   {
     "id": 28,
@@ -249,7 +303,9 @@
     "dataCenter": "Gaia",
     "group": "４期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-28",
+    "isHidden": false
   },
   {
     "id": 29,
@@ -258,7 +314,9 @@
     "dataCenter": "Gaia",
     "group": "４期生",
     "metric": 61,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-05",
+    "isHidden": false
   },
   {
     "id": 30,
@@ -267,7 +325,9 @@
     "dataCenter": "Gaia",
     "group": "４期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-25",
+    "isHidden": false
   },
   {
     "id": 31,
@@ -276,7 +336,9 @@
     "dataCenter": "Gaia",
     "group": "４期生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-28",
+    "isHidden": false
   },
   {
     "id": 32,
@@ -285,7 +347,9 @@
     "dataCenter": "Gaia",
     "group": "研修生",
     "metric": 90,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-20",
+    "isHidden": false
   },
   {
     "id": 33,
@@ -294,7 +358,9 @@
     "dataCenter": "Gaia",
     "group": "研修生",
     "metric": 32,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-01",
+    "isHidden": false
   },
   {
     "id": 34,
@@ -303,7 +369,9 @@
     "dataCenter": "Gaia",
     "group": "研修生",
     "metric": 82,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-15",
+    "isHidden": false
   },
   {
     "id": 35,
@@ -312,7 +380,9 @@
     "dataCenter": "Gaia",
     "group": "研修生",
     "metric": 9,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-01",
+    "isHidden": false
   },
   {
     "id": 36,
@@ -321,7 +391,9 @@
     "dataCenter": "Gaia",
     "group": "研修生",
     "metric": 80,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-20",
+    "isHidden": false
   },
   {
     "id": 37,
@@ -330,7 +402,9 @@
     "dataCenter": "Gaia",
     "group": "研修生",
     "metric": 32,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-01",
+    "isHidden": false
   },
   {
     "id": 38,
@@ -339,6 +413,8 @@
     "dataCenter": "Gaia",
     "group": "研修生",
     "metric": 100,
-    "avatarUrl": "/images/avatars/default.png"
+    "avatarUrl": "/images/icon/charicon-nomal.png",
+    "lastLoginDate": "2023-10-27",
+    "isHidden": false
   }
 ]
