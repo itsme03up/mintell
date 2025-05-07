@@ -1,6 +1,7 @@
-import "./globals.css";
 import { Navbar } from "../components/ui/navbar";
 import { Providers } from "./providers";
+import "react-day-picker/dist/style.css";
+import "./globals.css";
 
 export const metadata = {
   title: "FF14 FC 管理ダッシュボード",
