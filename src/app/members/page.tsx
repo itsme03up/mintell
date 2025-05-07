@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import charactersData from "@/data/characters.json";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
@@ -96,48 +96,76 @@ const initialMembers: Member[] = charactersData.map(character => ({
 export default function MembersPage() {
   const [memberList, setMemberList] = useState<Member[]>(initialMembers);
   const [showHidden, setShowHidden] = useState(false);
+  const [isSaving, setSaving] = useState(false);
+
+  // Function to save member data to the server
+  const saveMemberData = async (updatedMembers: Member[]) => {
+    try {
+      setSaving(true);
+      const response = await fetch('/api/members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ members: updatedMembers }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save data');
+      }
+    } catch (error) {
+      console.error('Error saving member data:', error);
+      alert('データの保存に失敗しました。');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleHideInactive = () => {
     const fifteenDaysAgo = new Date();
     fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
     fifteenDaysAgo.setHours(0, 0, 0, 0);
 
-    setMemberList(prevMembers =>
-      prevMembers.map(member => {
-        let newIsHidden = member.isHidden || false;
-        if (!newIsHidden && member.lastLoginDate) {
-          const lastLogin = new Date(member.lastLoginDate);
-          if (lastLogin < fifteenDaysAgo) {
-            newIsHidden = true;
-          }
+    const updatedMembers = memberList.map(member => {
+      let newIsHidden = member.isHidden || false;
+      if (!newIsHidden && member.lastLoginDate) {
+        const lastLogin = new Date(member.lastLoginDate);
+        if (lastLogin < fifteenDaysAgo) {
+          newIsHidden = true;
         }
-        return { ...member, isHidden: newIsHidden };
-      })
-    );
+      }
+      return { ...member, isHidden: newIsHidden };
+    });
+
+    setMemberList(updatedMembers);
+    saveMemberData(updatedMembers);
   };
 
   const handleToggleMemberHidden = (memberId: number, checked: boolean) => {
-    setMemberList(prevMembers =>
-      prevMembers.map(member =>
-        member.id === memberId ? { ...member, isHidden: checked } : member
-      )
+    const updatedMembers = memberList.map(member =>
+      member.id === memberId ? { ...member, isHidden: checked } : member
     );
+    
+    setMemberList(updatedMembers);
+    saveMemberData(updatedMembers);
   };
 
   const handleMainJobChange = (memberId: number, newJob: string) => {
-    setMemberList(prevMembers =>
-      prevMembers.map(member =>
-        member.id === memberId ? { ...member, mainJob: newJob } : member
-      )
+    const updatedMembers = memberList.map(member =>
+      member.id === memberId ? { ...member, mainJob: newJob } : member
     );
+    
+    setMemberList(updatedMembers);
+    saveMemberData(updatedMembers);
   };
 
   const handleProgressChange = (memberId: number, newProgress: string) => {
-    setMemberList(prevMembers =>
-      prevMembers.map(member =>
-        member.id === memberId ? { ...member, progress: newProgress } : member
-      )
+    const updatedMembers = memberList.map(member =>
+      member.id === memberId ? { ...member, progress: newProgress } : member
     );
+    
+    setMemberList(updatedMembers);
+    saveMemberData(updatedMembers);
   };
 
   const visibleMembers = memberList.filter(member => showHidden || !member.isHidden);
@@ -146,7 +174,9 @@ export default function MembersPage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">FCメンバー一覧</h1>
       <div className="flex items-center space-x-4">
-        <Button onClick={handleHideInactive}>長期未ログインメンバーを非表示</Button>
+        <Button onClick={handleHideInactive} disabled={isSaving}>
+          {isSaving ? "保存中..." : "長期未ログインメンバーを非表示"}
+        </Button>
         <div className="flex items-center space-x-2">
           <Checkbox
             id="show-hidden"
