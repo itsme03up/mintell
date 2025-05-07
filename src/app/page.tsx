@@ -22,56 +22,44 @@ export default function HomePage() {
           {/* クリック可能なカード */}
           <Link href="/members" className="block w-full max-w-xl no-underline">
             <Card className="w-full h-auto text-center transition-shadow hover:shadow-lg cursor-pointer">
-              <CardHeader className="py-6">
+              <CardHeader className="py-3">
                 <CardTitle className="text-2xl">メンバー管理</CardTitle>
                 <CardDescription className="text-lg">FCメンバーのログイン状況やストーリー進行度を確認</CardDescription>
               </CardHeader>
-              <CardContent className="pb-6">
-                <span className="inline-block px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium">
-                  詳細を見る
-                </span>
+              <CardContent className="pb-3">
               </CardContent>
             </Card>
           </Link>
 
           <Link href="/gear/layer/1" className="block w-full max-w-xl no-underline">
             <Card className="w-full h-auto text-center transition-shadow hover:shadow-lg cursor-pointer">
-              <CardHeader className="py-6">
+              <CardHeader className="py-3">
                 <CardTitle className="text-2xl">零式管理</CardTitle>
                 <CardDescription className="text-lg">IL760零式装備の所持状況を管理</CardDescription>
               </CardHeader>
-              <CardContent className="pb-6">
-                <span className="inline-block px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium">
-                  詳細を見る
-                </span>
+              <CardContent className="pb-3">
               </CardContent>
             </Card>
           </Link>
 
-          <Link href="/party-builder" className="block w-full max-w-3xl no-underline">
+          <Link href="/party-builder" className="block w-full max-w-xl no-underline">
             <Card className="w-full h-auto text-center transition-shadow hover:shadow-lg cursor-pointer">
-              <CardHeader className="py-6">
+              <CardHeader className="py-3">
                 <CardTitle className="text-2xl">PTビルダー</CardTitle>
                 <CardDescription className="text-lg">ドラッグ＆ドロップでPTを組成して保存</CardDescription>
               </CardHeader>
-              <CardContent className="pb-6">
-                <span className="inline-block px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium">
-                  詳細を見る
-                </span>
+              <CardContent className="pb-3">
               </CardContent>
             </Card>
           </Link>
 
-          <Link href="/events" className="block w-full max-w-1xl no-underline">
+          <Link href="/events" className="block w-full max-w-xl no-underline">
             <Card className="w-full h-auto text-center transition-shadow hover:shadow-lg cursor-pointer">
-              <CardHeader className="py-6">
+              <CardHeader className="py-3">
                 <CardTitle className="text-2xl">イベント</CardTitle>
                 <CardDescription className="text-lg">カレンダーでイベントを作成・管理</CardDescription>
               </CardHeader>
-              <CardContent className="pb-6">
-                <span className="inline-block px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium">
-                  詳細を見る
-                </span>
+              <CardContent className="pb-3">
               </CardContent>
             </Card>
           </Link>
