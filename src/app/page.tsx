@@ -1,14 +1,14 @@
 'use client';
 import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge";
 import { 
   Card, 
   CardHeader, 
   CardTitle, 
   CardDescription, 
   CardContent 
-} from "../components/ui/card"; // 小文字の 'card' に変更
-import Hero from "../components/ui/Hero"; // Heroコンポーネントをインポート
+} from "../components/ui/card";
+import Hero from "../components/ui/Hero";
+import Link from "next/link";
 
 export default function HomePage() {
   return (
@@ -27,7 +27,7 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <a href="/members">詳細を見る</a>
+                <Link href="/members">詳細を見る</Link>
               </Button>
             </CardContent>
           </Card>
@@ -39,7 +39,7 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <a href="/gear/layer/1">詳細を見る</a>
+                <Link href="/gear/layer/1">詳細を見る</Link>
               </Button>
             </CardContent>
           </Card>
@@ -51,7 +51,7 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <a href="/party-builder">詳細を見る</a>
+                <Link href="/party-builder">詳細を見る</Link>
               </Button>
             </CardContent>
           </Card>
@@ -63,7 +63,7 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <a href="/events">詳細を見る</a>
+                <Link href="/events">詳細を見る</Link>
               </Button>
             </CardContent>
           </Card>
