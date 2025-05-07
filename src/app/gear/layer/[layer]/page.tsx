@@ -2,7 +2,7 @@
 "use client";
 import React from "react";
 
-export default function GearLayerPage({
+export default function LayerPage({
   params,
 }: {
   params: { layer: string };

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/ui/Card";
 import {
   Table,
   TableHeader,
