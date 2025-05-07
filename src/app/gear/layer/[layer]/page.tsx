@@ -2,12 +2,10 @@
 "use client";
 import React from "react";
 
-// Remove the custom interface and use the correct parameter typing
 export default function GearLayerPage({
   params,
 }: {
   params: { layer: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   const { layer } = params;
   return (
