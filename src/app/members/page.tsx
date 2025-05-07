@@ -170,7 +170,7 @@ export default function MembersPage() {
           <TableBody>
             {visibleMembers.map((member) => (
               <TableRow key={member.id}>
-                <TableCell>
+                <TableCell className="pl-4">
                   <Image
                     src={member.avatarUrl}
                     alt={member.fullName}
@@ -186,18 +186,27 @@ export default function MembersPage() {
                     onValueChange={(value) => handleMainJobChange(member.id, value)}
                   >
                     <SelectTrigger className="w-[120px]">
-                      <SelectValue placeholder="ジョブ選択" />
+                      {member.mainJob ? (
+                        <span className={getJobColorClass(member.mainJob)}>
+                          {member.mainJob}
+                        </span>
+                      ) : (
+                        <SelectValue placeholder="ジョブ選択" />
+                      )}
                     </SelectTrigger>
                     <SelectContent>
-                      {jobRoles.map(({ job, role }) => (
-                        <SelectItem 
-                          key={job} 
-                          value={job}
-                          className={role === 'tank' ? 'text-blue-500' : role === 'healer' ? 'text-green-500' : 'text-red-500'}
-                        >
-                          {job}
-                        </SelectItem>
-                      ))}
+                      {jobRoles.map(({ job, role }) => {
+                        const colorClass = 
+                          role === 'tank' ? 'text-blue-500' : 
+                          role === 'healer' ? 'text-green-500' : 
+                          'text-red-500';
+                        
+                        return (
+                          <SelectItem key={job} value={job}>
+                            <span className={colorClass}>{job}</span>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </TableCell>
