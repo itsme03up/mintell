@@ -18,7 +18,7 @@ const navLinks = [
 
 export function Navbar() {
   return (
-    <NavigationMenu className="relative z-50 bg-neutral-900 text-neutral-100 p-4 w-full">
+    <NavigationMenu className="relative z-50 bg-black text-neutral-100 p-4 w-full">
       {/* ↑ ナビゲーションバー全体のスタイル（背景色、パディングなど）を確認・変更 */}
       <NavigationMenuList className="flex flex-row justify-start space-x-2 w-full">
         {/* ↑ リストアイテムのレイアウト（フレックス方向、アイテム間のスペースなど）を確認・変更 */}
