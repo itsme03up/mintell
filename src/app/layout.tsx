@@ -17,10 +17,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-gray-50 dark:bg-gray-900">
 
-        <Providers>
-          <Navbar />
-          <main className="relative z-10 p-4">{children}</main>
-        </Providers>
+        {/* <Providers>
+
+        </Providers> */}
+        {/* <Navbar /> */}
+        <main className="relative z-10 p-4">{children}</main>
       </body>
     </html>
   );

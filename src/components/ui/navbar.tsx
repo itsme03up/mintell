@@ -5,6 +5,8 @@ import {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
+  NavigationMenuLink,
+  navigationMenuTriggerStyle
 } from "@/components/ui/navigation-menu";
 
 const navLinks = [
@@ -44,7 +46,9 @@ export function NavLink({
       href={href}
       className="px-4 py-2 hover:text-pink-500 transition-colors"
     >
-      {children}
+      <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+        {children}
+      </NavigationMenuLink>
     </Link>
   );
 }

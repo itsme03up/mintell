@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import charactersData from "@/data/characters.json";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import {
@@ -11,77 +12,219 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Member {
   id: number;
-  name: string;
+  fullName: string;
   server: string;
+  dataCenter: string;
+  group: string;
+  metric: number;
   avatarUrl: string;
+  lastLoginDate: string | null;
+  isHidden?: boolean;
+  mainJob: string;
+  progress: string;
 }
 
-export default function MembersPage() {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showInactiveOnly, setShowInactiveOnly] = useState(false);
+// ジョブとそのロールの定義
+interface JobRole {
+  job: string;
+  role: 'tank' | 'healer' | 'dps';
+}
 
-  useEffect(() => {
-    fetch("/api/members")
-      .then((res) => res.json())
-      .then((data: Member[]) => {
-        setMembers(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+const jobRoles: JobRole[] = [
+  // タンク - 青色
+  { job: "PLD", role: "tank" },
+  { job: "WAR", role: "tank" },
+  { job: "DRK", role: "tank" },
+  { job: "GNB", role: "tank" },
+  // ヒーラー - 緑色
+  { job: "WHM", role: "healer" },
+  { job: "SCH", role: "healer" },
+  { job: "AST", role: "healer" },
+  { job: "SGE", role: "healer" },
+  // DPS - 赤色
+  { job: "MNK", role: "dps" },
+  { job: "DRG", role: "dps" },
+  { job: "NIN", role: "dps" },
+  { job: "SAM", role: "dps" },
+  { job: "RPR", role: "dps" },
+  { job: "BRD", role: "dps" },
+  { job: "MCH", role: "dps" },
+  { job: "DNC", role: "dps" },
+  { job: "BLM", role: "dps" },
+  { job: "SMN", role: "dps" },
+  { job: "RDM", role: "dps" },
+];
 
-  if (loading) {
-    return <div>読み込み中...</div>;
+const mainJobOptions = jobRoles.map(item => item.job);
+
+// ジョブに基づいて適切な色のクラスを返す関数
+const getJobColorClass = (job: string): string => {
+  const jobRole = jobRoles.find(item => item.job === job);
+  switch (jobRole?.role) {
+    case 'tank': return 'text-blue-500';
+    case 'healer': return 'text-green-500';
+    case 'dps': return 'text-red-500';
+    default: return '';
   }
+};
+
+const progressOptions = [
+  "未設定", "新生", "蒼天", "紅蓮", "漆黒", "暁月", "黄金"
+];
+
+const initialMembers: Member[] = charactersData.map(character => ({
+  ...character,
+  lastLoginDate: character.lastLoginDate === undefined ? null : character.lastLoginDate,
+  isHidden: character.isHidden || false,
+  mainJob: (character as any).mainJob || "",
+  progress: (character as any).progress || "",
+}));
+
+export default function MembersPage() {
+  const [memberList, setMemberList] = useState<Member[]>(initialMembers);
+  const [showHidden, setShowHidden] = useState(false);
+
+  const handleHideInactive = () => {
+    const fifteenDaysAgo = new Date();
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+    fifteenDaysAgo.setHours(0, 0, 0, 0);
+
+    setMemberList(prevMembers =>
+      prevMembers.map(member => {
+        let newIsHidden = member.isHidden || false;
+        if (!newIsHidden && member.lastLoginDate) {
+          const lastLogin = new Date(member.lastLoginDate);
+          if (lastLogin < fifteenDaysAgo) {
+            newIsHidden = true;
+          }
+        }
+        return { ...member, isHidden: newIsHidden };
+      })
+    );
+  };
+
+  const handleToggleMemberHidden = (memberId: number, checked: boolean) => {
+    setMemberList(prevMembers =>
+      prevMembers.map(member =>
+        member.id === memberId ? { ...member, isHidden: checked } : member
+      )
+    );
+  };
+
+  const handleMainJobChange = (memberId: number, newJob: string) => {
+    setMemberList(prevMembers =>
+      prevMembers.map(member =>
+        member.id === memberId ? { ...member, mainJob: newJob } : member
+      )
+    );
+  };
+
+  const handleProgressChange = (memberId: number, newProgress: string) => {
+    setMemberList(prevMembers =>
+      prevMembers.map(member =>
+        member.id === memberId ? { ...member, progress: newProgress } : member
+      )
+    );
+  };
+
+  const visibleMembers = memberList.filter(member => showHidden || !member.isHidden);
 
   return (
     <div className="space-y-4">
-      <Card className="p-4">
-        <div className="mb-4">
-          <label className="flex items-center space-x-2 text-sm text-muted cursor-pointer">
-            <Checkbox
-              id="filter-inactive"
-              checked={showInactiveOnly}
-              onCheckedChange={(checked) => setShowInactiveOnly(checked as boolean)}
-              className="rounded border-gray-300 text-minfilia-purple focus:ring-minfilia-purple"
-            />
-            <Label htmlFor="filter-inactive">未ログインメンバーのみ表示</Label>
-          </label>
+      <h1 className="text-2xl font-bold">FCメンバー一覧</h1>
+      <div className="flex items-center space-x-4">
+        <Button onClick={handleHideInactive}>長期未ログインメンバーを非表示</Button>
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="show-hidden"
+            checked={showHidden}
+            onCheckedChange={(checked) => setShowHidden(checked as boolean)}
+          />
+          <Label htmlFor="show-hidden">非表示メンバーを表示</Label>
         </div>
+      </div>
+      <Card className="p-4">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>アバター</TableHead>
               <TableHead>名前</TableHead>
-              <TableHead>サーバー</TableHead>
+              <TableHead>メインジョブ</TableHead>
+              <TableHead>進度</TableHead>
+              <TableHead>非表示</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {members
-              .filter(() => {
-                // TODO: 未ログイン判定用 lastLogin を取得次第フィルタを適用
-                return !showInactiveOnly;
-              })
-              .map((m) => (
-                <TableRow key={m.id}>
-                  <TableCell>
-                    <Image
-                      src={m.avatarUrl}
-                      alt={m.name}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                  </TableCell>
-                  <TableCell>{m.name}</TableCell>
-                  <TableCell>{m.server}</TableCell>
-                </TableRow>
-              ))}
+            {visibleMembers.map((member) => (
+              <TableRow key={member.id}>
+                <TableCell>
+                  <Image
+                    src={member.avatarUrl}
+                    alt={member.fullName}
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                </TableCell>
+                <TableCell>{member.fullName}</TableCell>
+                <TableCell>
+                  <Select
+                    value={member.mainJob}
+                    onValueChange={(value) => handleMainJobChange(member.id, value)}
+                  >
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="ジョブ選択" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {jobRoles.map(({ job, role }) => (
+                        <SelectItem 
+                          key={job} 
+                          value={job}
+                          className={role === 'tank' ? 'text-blue-500' : role === 'healer' ? 'text-green-500' : 'text-red-500'}
+                        >
+                          {job}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Select
+                    value={member.progress}
+                    onValueChange={(value) => handleProgressChange(member.id, value)}
+                  >
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="進度選択" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {progressOptions.map(option => (
+                        <SelectItem key={option} value={option}>{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Checkbox
+                    checked={!!member.isHidden}
+                    onCheckedChange={(checked) => handleToggleMemberHidden(member.id, checked as boolean)}
+                    aria-label={`Toggle hide for ${member.fullName}`}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </Card>

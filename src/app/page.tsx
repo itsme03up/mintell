@@ -20,7 +20,7 @@ export default function HomePage() {
       <section className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 place-items-center">
           {/* クリック可能なカード */}
-          <Link href="/members" className="block w-full max-w-xl no-underline">
+          <Link href="/members" className="block w-1/2 max-w-xl no-underline">
             <Card className="w-full h-auto text-center transition-shadow hover:shadow-lg cursor-pointer">
               <CardHeader className="py-3">
                 <CardTitle className="text-2xl">メンバー管理</CardTitle>
@@ -31,7 +31,7 @@ export default function HomePage() {
             </Card>
           </Link>
 
-          <Link href="/gear/layer/1" className="block w-full max-w-xl no-underline">
+          <Link href="/gear/layer/1" className="block w-1/2 max-w-xl no-underline">
             <Card className="w-full h-auto text-center transition-shadow hover:shadow-lg cursor-pointer">
               <CardHeader className="py-3">
                 <CardTitle className="text-2xl">零式管理</CardTitle>
@@ -42,7 +42,7 @@ export default function HomePage() {
             </Card>
           </Link>
 
-          <Link href="/party-builder" className="block w-full max-w-xl no-underline">
+          <Link href="/party-builder" className="block w-1/2 max-w-xl no-underline">
             <Card className="w-full h-auto text-center transition-shadow hover:shadow-lg cursor-pointer">
               <CardHeader className="py-3">
                 <CardTitle className="text-2xl">PTビルダー</CardTitle>
@@ -53,7 +53,7 @@ export default function HomePage() {
             </Card>
           </Link>
 
-          <Link href="/events" className="block w-full max-w-xl no-underline">
+          <Link href="/events" className="block w-1/2 max-w-xl no-underline">
             <Card className="w-full h-auto text-center transition-shadow hover:shadow-lg cursor-pointer">
               <CardHeader className="py-3">
                 <CardTitle className="text-2xl">イベント</CardTitle>
