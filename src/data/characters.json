@@ -1,0 +1,344 @@
+[
+  {
+    "id": 1,
+    "fullName": "Minfilia Warde'",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "事務所スタッフ",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 2,
+    "fullName": "Niku Jiru",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "０期生",
+    "metric": 83,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 3,
+    "fullName": "Prado Maximum",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "０期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 4,
+    "fullName": "Sa-ra Kai",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "０期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 5,
+    "fullName": "Ururu Asagiri",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "０期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 6,
+    "fullName": "Holly Nogadd",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "１期生",
+    "metric": 88,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 7,
+    "fullName": "Kohaku Violet",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "１期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 8,
+    "fullName": "Kuu Rin",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "１期生",
+    "metric": 85,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 9,
+    "fullName": "Maio Vinte",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "１期生",
+    "metric": 67,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 10,
+    "fullName": "Meriii Ura",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "１期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 11,
+    "fullName": "Proserpina Itsme",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "１期生",
+    "metric": 50,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 12,
+    "fullName": "Sonja Eruyt",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "１期生",
+    "metric": 80,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 13,
+    "fullName": "Yumemichi Kurumi",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "１期生",
+    "metric": 90,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 14,
+    "fullName": "Ashin Rurouni",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "２期生",
+    "metric": 90,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 15,
+    "fullName": "Citron Uzu",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "２期生",
+    "metric": 64,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 16,
+    "fullName": "Gracoix Jgnewesfv",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "２期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 17,
+    "fullName": "Leaf Breeze",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "２期生",
+    "metric": 90,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 18,
+    "fullName": "Sorahal Raven",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "２期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 19,
+    "fullName": "Yappi- Maximum",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "２期生",
+    "metric": 45,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 20,
+    "fullName": "Yuduki Nagatuki",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "２期生",
+    "metric": 90,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 21,
+    "fullName": "Buna Sun",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "３期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 22,
+    "fullName": "Gano Tempest",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "３期生",
+    "metric": 76,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 23,
+    "fullName": "Kizuna Masachi",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "３期生",
+    "metric": 90,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 24,
+    "fullName": "Korone- Tachibana",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "３期生",
+    "metric": 65,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 25,
+    "fullName": "Oron Hortensia",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "３期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 26,
+    "fullName": "Panda Raou",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "３期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 27,
+    "fullName": "Saro Sandberg",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "３期生",
+    "metric": 60,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 28,
+    "fullName": "Leo Sisijou",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "４期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 29,
+    "fullName": "Omatsu Nyarome",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "４期生",
+    "metric": 61,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 30,
+    "fullName": "Royi Orben",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "４期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 31,
+    "fullName": "Sora Cielo",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "４期生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 32,
+    "fullName": "Kou Kou",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "研修生",
+    "metric": 90,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 33,
+    "fullName": "Legacy Rays",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "研修生",
+    "metric": 32,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 34,
+    "fullName": "Leo Asher",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "研修生",
+    "metric": 82,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 35,
+    "fullName": "Rika Orimoto",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "研修生",
+    "metric": 9,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 36,
+    "fullName": "Shion Shishiro",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "研修生",
+    "metric": 80,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 37,
+    "fullName": "Yachacha Yacha",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "研修生",
+    "metric": 32,
+    "avatarUrl": "/images/avatars/default.png"
+  },
+  {
+    "id": 38,
+    "fullName": "Zayac Itsme",
+    "server": "Ultima",
+    "dataCenter": "Gaia",
+    "group": "研修生",
+    "metric": 100,
+    "avatarUrl": "/images/avatars/default.png"
+  }
+]
