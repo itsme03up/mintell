@@ -43,7 +43,6 @@ export function NavLink({
     <Link
       href={href}
       className="px-4 py-2 hover:text-pink-500 transition-colors"
-      // ↑ 個々のリンクのスタイル（パディング、ホバー時の色など）を確認・変更
     >
       {children}
     </Link>
