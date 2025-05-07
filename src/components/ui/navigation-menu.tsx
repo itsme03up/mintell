@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu"
 import { cva } from "class-variance-authority"
@@ -5,12 +7,12 @@ import { ChevronDownIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function NavigationMenu({
+export function NavigationMenu({
   className,
   children,
   viewport = true,
   ...props
-}: React.ComponentProps<typeof NavigationMenuPrimitive.Root> & {
+}: React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Root> & {
   viewport?: boolean
 }) {
   return (
@@ -18,13 +20,22 @@ function NavigationMenu({
       data-slot="navigation-menu"
       data-viewport={viewport}
       className={cn(
-        "group/navigation-menu relative flex max-w-max flex-1 items-center justify-center",
+        "group/navigation-menu flex max-w-max flex-1 items-center justify-center",
         className
       )}
       {...props}
     >
       {children}
-      {viewport && <NavigationMenuViewport />}
+      {viewport && (
+        <div className="perspective-[2000px] absolute left-0 top-full flex justify-center">
+          <NavigationMenuPrimitive.Viewport
+            data-slot="viewport"
+            className={cn(
+              "origin-[top_center] relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]"
+            )}
+          />
+        </div>
+      )}
     </NavigationMenuPrimitive.Root>
   )
 }
@@ -99,28 +110,6 @@ function NavigationMenuContent({
   )
 }
 
-function NavigationMenuViewport({
-  className,
-  ...props
-}: React.ComponentProps<typeof NavigationMenuPrimitive.Viewport>) {
-  return (
-    <div
-      className={cn(
-        "absolute top-full left-0 isolate z-50 flex justify-center"
-      )}
-    >
-      <NavigationMenuPrimitive.Viewport
-        data-slot="navigation-menu-viewport"
-        className={cn(
-          "origin-top-center bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-md border shadow md:w-[var(--radix-navigation-menu-viewport-width)]",
-          className
-        )}
-        {...props}
-      />
-    </div>
-  )
-}
-
 function NavigationMenuLink({
   className,
   ...props
@@ -156,13 +145,11 @@ function NavigationMenuIndicator({
 }
 
 export {
-  NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuContent,
   NavigationMenuTrigger,
   NavigationMenuLink,
   NavigationMenuIndicator,
-  NavigationMenuViewport,
   navigationMenuTriggerStyle,
 }
