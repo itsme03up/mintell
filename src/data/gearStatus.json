@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "fullName": "Minfilia Warde",
+    "gear": {
+      "weapon": true,
+      "head": false,
+      "body": true,
+      "hands": true,
+      "legs": false,
+      "feet": true,
+      "ear": true,
+      "neck": false,
+      "wrist": true,
+      "ring": true
+    }
+  },
+  {
+    "id": 2,
+    "fullName": "Y'shtola Rhul",
+    "gear": {
+      "weapon": true,
+      "head": true,
+      "body": true,
+      "hands": false,
+      "legs": true,
+      "feet": false,
+      "ear": true,
+      "neck": true,
+      "wrist": false,
+      "ring": true
+    }
+  }
+]
