@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { GearKey, GearStatus } from "@/lib/types";
-import { calcEligibleLayer } from "@/lib/calcEligibleLayer";
+import { calcNeededTiers } from "@/lib/calcEligibleLayer";
 import charactersData from "@/data/characters.json";
 import initialGearStatus from "@/data/gearStatus.json";
 
@@ -194,12 +194,12 @@ export default function GearPage() {
               {gearKeys.map(key => (
                 <TableHead key={key} className="text-center">{key}</TableHead>
               ))}
-              <TableHead>参加可能層</TableHead>
+              <TableHead>必要な層</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {visibleMembers.map((member) => {
-              const eligibleLayer = calcEligibleLayer(member.gear);
+              const neededTiers = calcNeededTiers(member.gear);
               const character = charactersData.find(c => c.id === member.id);
               
               return (
@@ -231,13 +231,17 @@ export default function GearPage() {
                     </TableCell>
                   ))}
                   <TableCell>
-                    {eligibleLayer > 0 ? (
-                      <Badge variant="outline" className="bg-green-100 text-green-800">
-                        零式{eligibleLayer}層
-                      </Badge>
+                    {neededTiers.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {neededTiers.map(tier => (
+                          <Badge key={tier} variant="outline" className="bg-amber-100 text-amber-800">
+                            {tier}層
+                          </Badge>
+                        ))}
+                      </div>
                     ) : (
-                      <Badge variant="outline" className="bg-red-100 text-red-800">
-                        準備中
+                      <Badge variant="outline" className="bg-green-100 text-green-800">
+                        完了
                       </Badge>
                     )}
                   </TableCell>
