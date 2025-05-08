@@ -5,8 +5,6 @@ import characters from "@/data/characters.json";
 import { DndContext, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
 import { PointerSensor } from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import SortableItem from "@/components/sortable-item"; // Ensure this file exists at src/components/sortable-item.tsx
 
@@ -16,7 +14,7 @@ type SlotKey = typeof SLOT_KEYS[number];
 
 export default function PartyBuilderPage() {
   const [slots, setSlots] = useState<Record<SlotKey, number | null>>(() => {
-    const init: Record<SlotKey, number | null> = {} as any;
+    const init: Record<SlotKey, number | null> = {} as Record<SlotKey, number | null>;
     SLOT_KEYS.forEach((key) => {
       init[key] = null;
     });
@@ -27,7 +25,7 @@ export default function PartyBuilderPage() {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: { active: { id: string }; over: { id: string } | null }) => {
     const { active, over } = event;
     if (over && typeof over.id === "string" && over.id.startsWith("slot-")) {
       const slotKey = over.id.replace("slot-", "") as SlotKey;
