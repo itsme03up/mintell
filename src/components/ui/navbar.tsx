@@ -17,7 +17,7 @@ const navLinks = [
   { href: "/gear", label: "零式管理", icon: ShieldIcon },
   { href: "/party-builder", label: "PTビルダー", icon: UsersRoundIcon },
   { href: "/events", label: "イベント", icon: CalendarIcon },
-  { href: "/schedule", label: "スケジュール", icon: CalendarClockIcon },
+  { href: "memo", label: "メモ", icon: CalendarClockIcon },
 ];
 
 export function Navbar() {
