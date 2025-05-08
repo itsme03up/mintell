@@ -1,34 +1,82 @@
 [
   {
     "id": 1,
-    "fullName": "Minfilia Warde",
+    "optIn": true,
     "gear": {
       "weapon": true,
-      "head": false,
+      "head": true,
       "body": true,
       "hands": true,
-      "legs": false,
+      "legs": true,
       "feet": true,
       "ear": true,
-      "neck": false,
+      "neck": true,
       "wrist": true,
       "ring": true
     }
   },
   {
     "id": 2,
-    "fullName": "Y'shtola Rhul",
+    "optIn": false,
     "gear": {
       "weapon": true,
       "head": true,
       "body": true,
       "hands": false,
-      "legs": true,
+      "legs": false,
       "feet": false,
       "ear": true,
       "neck": true,
-      "wrist": false,
+      "wrist": true,
       "ring": true
+    }
+  },
+  {
+    "id": 3,
+    "optIn": true,
+    "gear": {
+      "weapon": true,
+      "head": false,
+      "body": false,
+      "hands": false,
+      "legs": false,
+      "feet": false,
+      "ear": false,
+      "neck": false,
+      "wrist": false,
+      "ring": false
+    }
+  },
+  {
+    "id": 4,
+    "optIn": false,
+    "gear": {
+      "weapon": false,
+      "head": false,
+      "body": false,
+      "hands": false,
+      "legs": false,
+      "feet": false,
+      "ear": false,
+      "neck": false,
+      "wrist": false,
+      "ring": false
+    }
+  },
+  {
+    "id": 5,
+    "optIn": true,
+    "gear": {
+      "weapon": true,
+      "head": true,
+      "body": true,
+      "hands": true,
+      "legs": true,
+      "feet": true,
+      "ear": false,
+      "neck": false,
+      "wrist": false,
+      "ring": false
     }
   }
 ]
