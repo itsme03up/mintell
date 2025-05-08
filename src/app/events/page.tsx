@@ -78,13 +78,51 @@ export default function EventsPage() {
     id: 0,
   });
 
+  // パーティスロットの管理
+  const [partySlots, setPartySlots] = useState<{
+    [key: string]: number | null;
+  }>({
+    MT: null,
+    ST: null,
+    H1: null,
+    H2: null,
+    D1: null,
+    D2: null,
+    D3: null,
+    D4: null,
+  });
+
+  // パーティスロットの割り当て/解除
+  const assignToSlot = (slot: string, memberId: number | null) => {
+    // 既に他のスロットに割り当てられている場合、そのスロットから削除
+    if (memberId !== null) {
+      const currentSlot = Object.entries(partySlots).find(
+        ([_, id]) => id === memberId
+      )?.[0];
+
+      if (currentSlot) {
+        setPartySlots(prev => ({ ...prev, [currentSlot]: null }));
+      }
+    }
+
+    // 新しいスロットに割り当て
+    setPartySlots(prev => ({ ...prev, [slot]: memberId }));
+  };
+
+  // メンバーがどのスロットに割り当てられているか確認
+  const getMemberSlot = (memberId: number) => {
+    return Object.entries(partySlots).find(
+      ([_, id]) => id === memberId
+    )?.[0] || null;
+  };
+
   // ドラッグ＆ドロップの設定
   useEffect(() => {
     const draggableEl = document.getElementById("draggable-el");
     if (draggableEl) {
       new Draggable(draggableEl, {
         itemSelector: ".fc-event",
-        eventData: function(eventEl) {
+        eventData: function (eventEl) {
           const title = eventEl.getAttribute("title");
           const id = new Date().getTime(); // ユニークIDの生成
           const color = colorOptions[Math.floor(Math.random() * colorOptions.length)];
@@ -118,7 +156,7 @@ export default function EventsPage() {
       allDay: eventInfo.allDay,
       color: eventInfo.draggedEl.style.backgroundColor || colorOptions[Math.floor(Math.random() * colorOptions.length)]
     };
-    
+
     setAllEvents(prev => [...prev, newEvent]);
   };
 
@@ -157,203 +195,343 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-primary">イベント管理</h1>
-      </div>
-
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-9">
-          <Card className="p-4 bg-background shadow-md border border-gray-200">
-            <FullCalendar
-              plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
-              headerToolbar={{
-                left: "prev,next today",
-                center: "title",
-                right: "dayGridMonth,timeGridWeek,timeGridDay"
-              }}
-              events={allEvents as EventSourceInput}
-              nowIndicator={true}
-              editable={true}
-              droppable={true}
-              selectable={true}
-              selectMirror={true}
-              locale="ja"
-              eventClick={handleEventClick}
-              dateClick={handleDateClick}
-              drop={handleReceive}
-              height="auto"
-            />
-          </Card>
+    <>
+      <div className="container mx-auto py-6 space-y-8">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-primary">イベント管理</h1>
         </div>
 
-        <div className="col-span-3">
-          <div id="draggable-el" className="mb-6 w-full border-2 p-2 rounded-md bg-muted/30">
-            <h2 className="font-bold text-lg text-center mb-3">ドラッグできるイベント</h2>
-            {events.map(event => (
-              <div
-                className="fc-event border-2 p-2 mb-2 w-full rounded-md text-center bg-white hover:bg-primary/10 cursor-pointer"
-                title={event.title}
-                key={event.id}
-              >
-                {event.title}
-              </div>
-            ))}
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-9">
+            <Card className="p-4 bg-background shadow-md border border-gray-200">
+              <FullCalendar
+                plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
+                headerToolbar={{
+                  left: "prev,next today",
+                  center: "title",
+                  right: "dayGridMonth,timeGridWeek,timeGridDay"
+                }}
+                events={allEvents as EventSourceInput}
+                nowIndicator={true}
+                editable={true}
+                droppable={true}
+                selectable={true}
+                selectMirror={true}
+                locale="ja"
+                eventClick={handleEventClick}
+                dateClick={handleDateClick}
+                drop={handleReceive}
+                height="auto" />
+            </Card>
           </div>
 
-          <Card className="p-4 bg-background shadow-md border border-gray-200">
-            <h2 className="font-bold text-lg mb-4">新規イベント作成</h2>
-            <Button variant="default" className="w-full mb-2" onClick={() => setShowModal(true)}>
-              + イベント作成
-            </Button>
-          </Card>
-        </div>
-      </div>
+          <div className="col-span-3">
+            <div id="draggable-el" className="mb-6 w-full border-2 p-2 rounded-md bg-muted/30">
+              <h2 className="font-bold text-lg text-center mb-3">ドラッグできるイベント</h2>
+              {events.map(event => (
+                <div
+                  className="fc-event border-2 p-2 mb-2 w-full rounded-md text-center bg-white hover:bg-primary/10 cursor-pointer"
+                  title={event.title}
+                  key={event.id}
+                >
+                  {event.title}
+                </div>
+              ))}
+            </div>
 
-      {/* イベント作成モーダル */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>新規イベント作成</DialogTitle>
-            <DialogDescription>
-              イベントの詳細を入力してください。
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {/* タイトル */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="event-title" className="text-right">
-                タイトル
-              </Label>
-              <Input
-                id="event-title"
-                className="col-span-3"
-                placeholder="例: 暗黒PT募集"
-                value={newEvent.title}
-                onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
-              />
-            </div>
-            
-            {/* 日付・時間 */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="event-date" className="text-right">
-                日付
-              </Label>
-              <Input
-                id="event-date"
-                type="date"
-                className="col-span-3"
-                value={typeof newEvent.start === 'string' ? newEvent.start.split('T')[0] : ''}
-                onChange={(e) => setNewEvent({...newEvent, start: e.target.value})}
-              />
-            </div>
-            
-            {/* 終日フラグ */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">終日</Label>
-              <div className="col-span-3">
-                <Checkbox 
-                  id="allDay"
-                  checked={newEvent.allDay} 
-                  onCheckedChange={(checked) => 
-                    setNewEvent({...newEvent, allDay: checked === true})
-                  }
+            <Card className="p-4 bg-background shadow-md border border-gray-200">
+              <h2 className="font-bold text-lg mb-4">新規イベント作成</h2>
+              <Button variant="default" className="w-full mb-2" onClick={() => setShowModal(true)}>
+                + イベント作成
+              </Button>
+            </Card>
+          </div>
+        </div>
+
+        {/* イベント作成モーダル */}
+        <Dialog open={showModal} onOpenChange={setShowModal}>
+          <DialogContent className="sm:max-w-xl">
+            <DialogHeader>
+              <DialogTitle>新規イベント作成</DialogTitle>
+              <DialogDescription>
+                イベントの詳細を入力してください。
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {/* タイトル */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="event-title" className="text-right">
+                  タイトル
+                </Label>
+                <Input
+                  id="event-title"
+                  className="col-span-3"
+                  placeholder="例: 暗黒PT募集"
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                 />
-                <Label htmlFor="allDay" className="ml-2">終日イベント</Label>
               </div>
             </div>
-            
-            {/* 参加者 */}
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right pt-1">参加者</Label>
-              <div className="col-span-3">
-                <div className="h-[180px] border rounded-md p-2 overflow-y-auto">
-                  <div className="space-y-2">
-                    {sampleMembers.map((member) => (
-                      <div
-                        key={member.id}
-                        className="flex items-center space-x-2 py-1 px-2 rounded hover:bg-gray-100"
-                      >
-                        <Checkbox
-                          id={`member-${member.id}`}
-                          checked={selectedMembers.includes(member.id)}
-                          onCheckedChange={() => toggleMember(member.id)}
-                        />
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
-                            {member.avatar ? (
-                              <img
-                                src={member.avatar}
-                                alt={member.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-500">
-                                {member.name.charAt(0)}
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <Label
-                              htmlFor={`member-${member.id}`}
-                              className="font-medium cursor-pointer"
-                            >
-                              {member.name}
-                            </Label>
-                            <p className="text-xs text-gray-500">
-                              {member.role}
-                            </p>
-                          </div>
-                        </div>
+
+              {/* 日付・時間 */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="event-date" className="text-right">
+                  日付
+                </Label>
+                <Input
+                  id="event-date"
+                  type="date"
+                  className="col-span-3"
+                  value={typeof newEvent.start === 'string' ? newEvent.start.split('T')[0] : ''}
+                  onChange={(e) => setNewEvent({ ...newEvent, start: e.target.value })}
+                />
+              </div>
+
+              {/* 終日フラグ */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">終日</Label>
+                <div className="col-span-3">
+                  <Checkbox
+                    id="allDay"
+                    checked={newEvent.allDay}
+                    onCheckedChange={(checked) =>
+                      setNewEvent({ ...newEvent, allDay: checked === true })
+                    }
+                  />
+                  <Label htmlFor="allDay" className="ml-2">終日イベント</Label>
+                </div>
+              </div>
+
+              {/* パーティ構成セクション */}
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label className="text-right pt-1">パーティ構成</Label>
+                <div className="col-span-3 grid grid-cols-2 gap-4">
+                  {/* パーティスロット（左） */}
+                  <div className="space-y-2 border rounded-md p-3">
+                    <h3 className="font-medium text-sm mb-2">ロール割り当て</h3>
+
+                    {/* タンク */}
+                    <div className="space-y-1">
+                      <div className="flex items-center border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950/30 pl-2 py-1 rounded-r-sm">
+                        <span className="text-blue-700 dark:text-blue-300 font-medium text-sm w-8">MT</span>
+                        <select
+                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
+                          value={partySlots.MT || ""}
+                          onChange={(e) => assignToSlot("MT", e.target.value ? Number(e.target.value) : null)}
+                        >
+                          <option value="">-- 選択 --</option>
+                          {sampleMembers
+                            .filter(m => m.role === "タンク")
+                            .map(member => (
+                              <option key={member.id} value={member.id}>
+                                {member.name}
+                              </option>
+                            ))}
+                        </select>
                       </div>
-                    ))}
+
+                      <div className="flex items-center border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950/30 pl-2 py-1 rounded-r-sm">
+                        <span className="text-blue-700 dark:text-blue-300 font-medium text-sm w-8">ST</span>
+                        <select
+                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
+                          value={partySlots.ST || ""}
+                          onChange={(e) => assignToSlot("ST", e.target.value ? Number(e.target.value) : null)}
+                        >
+                          <option value="">-- 選択 --</option>
+                          {sampleMembers
+                            .filter(m => m.role === "タンク")
+                            .map(member => (
+                              <option key={member.id} value={member.id}>
+                                {member.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* ヒーラー */}
+                    <div className="space-y-1 mt-3">
+                      <div className="flex items-center border-l-4 border-green-500 bg-green-50 dark:bg-green-950/30 pl-2 py-1 rounded-r-sm">
+                        <span className="text-green-700 dark:text-green-300 font-medium text-sm w-8">H1</span>
+                        <select
+                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
+                          value={partySlots.H1 || ""}
+                          onChange={(e) => assignToSlot("H1", e.target.value ? Number(e.target.value) : null)}
+                        >
+                          <option value="">-- 選択 --</option>
+                          {sampleMembers
+                            .filter(m => m.role === "ヒーラー")
+                            .map(member => (
+                              <option key={member.id} value={member.id}>
+                                {member.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center border-l-4 border-green-500 bg-green-50 dark:bg-green-950/30 pl-2 py-1 rounded-r-sm">
+                        <span className="text-green-700 dark:text-green-300 font-medium text-sm w-8">H2</span>
+                        <select
+                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
+                          value={partySlots.H2 || ""}
+                          onChange={(e) => assignToSlot("H2", e.target.value ? Number(e.target.value) : null)}
+                        >
+                          <option value="">-- 選択 --</option>
+                          {sampleMembers
+                            .filter(m => m.role === "ヒーラー")
+                            .map(member => (
+                              <option key={member.id} value={member.id}>
+                                {member.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* DPS */}
+                    <div className="space-y-1 mt-3">
+                      <div className="flex items-center border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 pl-2 py-1 rounded-r-sm">
+                        <span className="text-red-700 dark:text-red-300 font-medium text-sm w-8">D1</span>
+                        <select
+                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
+                          value={partySlots.D1 || ""}
+                          onChange={(e) => assignToSlot("D1", e.target.value ? Number(e.target.value) : null)}
+                        >
+                          <option value="">-- 選択 --</option>
+                          {sampleMembers
+                            .filter(m => m.role === "DPS")
+                            .map(member => (
+                              <option key={member.id} value={member.id}>
+                                {member.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 pl-2 py-1 rounded-r-sm">
+                        <span className="text-red-700 dark:text-red-300 font-medium text-sm w-8">D2</span>
+                        <select
+                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
+                          value={partySlots.D2 || ""}
+                          onChange={(e) => assignToSlot("D2", e.target.value ? Number(e.target.value) : null)}
+                        >
+                          <option value="">-- 選択 --</option>
+                          {sampleMembers
+                            .filter(m => m.role === "DPS")
+                            .map(member => (
+                              <option key={member.id} value={member.id}>
+                                {member.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 pl-2 py-1 rounded-r-sm">
+                        <span className="text-red-700 dark:text-red-300 font-medium text-sm w-8">D3</span>
+                        <select
+                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
+                          value={partySlots.D3 || ""}
+                          onChange={(e) => assignToSlot("D3", e.target.value ? Number(e.target.value) : null)}
+                        >
+                          <option value="">-- 選択 --</option>
+                          {sampleMembers
+                            .filter(m => m.role === "DPS")
+                            .map(member => (
+                              <option key={member.id} value={member.id}>
+                                {member.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 pl-2 py-1 rounded-r-sm">
+                        <span className="text-red-700 dark:text-red-300 font-medium text-sm w-8">D4</span>
+                        <select
+                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
+                          value={partySlots.D4 || ""}
+                          onChange={(e) => assignToSlot("D4", e.target.value ? Number(e.target.value) : null)}
+                        >
+                          <option value="">-- 選択 --</option>
+                          {sampleMembers
+                            .filter(m => m.role === "DPS")
+                            .map(member => (
+                              <option key={member.id} value={member.id}>
+                                {member.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* メンバーリスト（右） */}
+                  <div className="h-[300px] border rounded-md p-2 overflow-y-auto">
+                    <h3 className="font-medium text-sm mb-2">メンバー一覧</h3>
+                    <div className="space-y-2">
+                      {sampleMembers.map((member) => {
+                        const assignedSlot = getMemberSlot(member.id);
+                        return (
+                          <div
+                            key={member.id}
+                            className={`flex items-center space-x-2 py-1 px-2 rounded ${
+                              assignedSlot ? 'bg-gray-100 dark:bg-gray-800' : 'hover:bg-gray-50 dark:hover:bg-gray-900'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+                                {member.avatar ? (
+                                  <img
+                                    src={member.avatar}
+                                    alt={member.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                    {member.name.charAt(0)}
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{member.name}</p>
+                                <p className="text-xs text-gray-500">
+                                  {member.role} {assignedSlot && `(${assignedSlot})`}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-                <div className="mt-2 text-xs text-right text-gray-500">
-                  選択中: {selectedMembers.length}人
-                </div>
               </div>
-            </div>
-            
-            {/* 説明 */}
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="description" className="text-right pt-1">
-                説明
-              </Label>
-              <Textarea
-                id="description"
-                className="col-span-3"
-                placeholder="イベント詳細を記入"
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowModal(false)}>
-              キャンセル
-            </Button>
-            <Button onClick={handleAddEvent}>保存</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowModal(false)}>
+                        キャンセル
+                      </Button>
+                      <Button onClick={handleAddEvent}>保存</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
-      {/* 削除確認モーダル */}
-      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>イベントの削除</DialogTitle>
-            <DialogDescription>
-              このイベントを削除してもよろしいですか？
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
-              キャンセル
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteEvent}>削除</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+        {/* 削除確認モーダル */}
+        <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>イベントの削除</DialogTitle>
+              <DialogDescription>
+                このイベントを削除してもよろしいですか？
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+                キャンセル
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteEvent}>削除</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </>
   );
 }
