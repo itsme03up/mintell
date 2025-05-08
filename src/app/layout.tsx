@@ -1,5 +1,5 @@
-import { Sidebar } from "../components/ui/sidebar";
 import { Providers } from "./providers";
+import NavBar from "./components/NavBar";
 import "react-day-picker/dist/style.css";
 import "./globals.css";
 
@@ -17,8 +17,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Providers>
-          <div className="flex min-h-screen">
-            <Sidebar />
+          <div className="min-h-screen">
+            <NavBar />
             <main className="flex-1 relative z-10 p-4">{children}</main>
           </div>
         </Providers>
