@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import charactersData from "@/data/characters.json";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
@@ -68,8 +68,6 @@ const jobRoles: JobRole[] = [
   { job: "RDM", role: "dps" },
 ];
 
-const mainJobOptions = jobRoles.map(item => item.job);
-
 // ジョブに基づいて適切な色のクラスを返す関数
 const getJobColorClass = (job: string): string => {
   const jobRole = jobRoles.find(item => item.job === job);
@@ -89,8 +87,8 @@ const initialMembers: Member[] = charactersData.map(character => ({
   ...character,
   lastLoginDate: character.lastLoginDate === undefined ? null : character.lastLoginDate,
   isHidden: character.isHidden || false,
-  mainJob: (character as any).mainJob || "",
-  progress: (character as any).progress || "",
+  mainJob: (character as Member).mainJob || "",
+  progress: (character as Member).progress || "",
 }));
 
 export default function MembersPage() {

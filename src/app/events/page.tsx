@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin, { Draggable, DropArg } from "@fullcalendar/interaction";
+import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { EventSourceInput } from "@fullcalendar/core/index.js";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -20,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
+import Image from "next/image";
 
 // イベントインターフェース
 interface Event {
@@ -29,6 +28,27 @@ interface Event {
   allDay: boolean;
   id: number;
   color?: string;
+}
+
+// FullCalendar イベント関連の型
+interface EventClickInfo {
+  event: {
+    id: string;
+    title: string;
+    start: Date | null;
+    allDay: boolean;
+  };
+}
+
+interface DateClickInfo {
+  dateStr: string;
+  allDay: boolean;
+}
+
+interface EventReceiveInfo {
+  draggedEl: HTMLElement;
+  date: Date;
+  allDay: boolean;
 }
 
 // ドラッグ可能なイベントデータ
@@ -65,12 +85,12 @@ export default function EventsPage() {
   ];
 
   // 状態管理
-  const [events, setEvents] = useState(dragEvents);
+  const [, /* events */ ] = useState(dragEvents);
   const [allEvents, setAllEvents] = useState<Event[]>(initialEvents);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [idToDelete, setIdToDelete] = useState<number | null>(null);
-  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const [, /* selectedMembers */ ] = useState<number[]>([]);
   const [newEvent, setNewEvent] = useState<Event>({
     title: "",
     start: "",
@@ -97,7 +117,7 @@ export default function EventsPage() {
     // 既に他のスロットに割り当てられている場合、そのスロットから削除
     if (memberId !== null) {
       const currentSlot = Object.entries(partySlots).find(
-        ([_, id]) => id === memberId
+        ([, id]) => id === memberId
       )?.[0];
 
       if (currentSlot) {
@@ -112,7 +132,7 @@ export default function EventsPage() {
   // メンバーがどのスロットに割り当てられているか確認
   const getMemberSlot = (memberId: number) => {
     return Object.entries(partySlots).find(
-      ([_, id]) => id === memberId
+      ([, id]) => id === memberId
     )?.[0] || null;
   };
 
@@ -148,10 +168,10 @@ export default function EventsPage() {
   };
 
   // イベントが受け取られたときの処理
-  const handleReceive = (eventInfo: any) => {
+  const handleReceive = (eventInfo: EventReceiveInfo) => {
     const newEvent: Event = {
-      id: eventInfo.draggedEl.getAttribute("id") || Date.now(),
-      title: eventInfo.draggedEl.getAttribute("title"),
+      id: parseInt(eventInfo.draggedEl.getAttribute("id") || Date.now().toString()),
+      title: eventInfo.draggedEl.getAttribute("title") || "新しいイベント",
       start: eventInfo.date,
       allDay: eventInfo.allDay,
       color: eventInfo.draggedEl.style.backgroundColor || colorOptions[Math.floor(Math.random() * colorOptions.length)]
@@ -161,9 +181,11 @@ export default function EventsPage() {
   };
 
   // イベントのクリック処理
-  const handleEventClick = (eventInfo: any) => {
-    setIdToDelete(Number(eventInfo.event.id));
-    setShowDeleteModal(true);
+  const handleEventClick = (eventInfo: EventClickInfo) => {
+      if (eventInfo.event.start) {
+          setIdToDelete(Number(eventInfo.event.id));
+          setShowDeleteModal(true);
+      }
   };
 
   // イベントの削除処理
@@ -176,7 +198,7 @@ export default function EventsPage() {
   };
 
   // 日付のクリック処理
-  const handleDateClick = (info: any) => {
+  const handleDateClick = (info: DateClickInfo) => {
     setNewEvent({
       ...newEvent,
       start: info.dateStr,
@@ -185,14 +207,14 @@ export default function EventsPage() {
     setShowModal(true);
   };
 
-  // メンバー選択のトグル処理
-  const toggleMember = (id: number) => {
+  // メンバー選択のトグル処理 - 未使用だが将来的に使う可能性があるため残しておく
+  /* const toggleMember = (id: number) => {
     setSelectedMembers((prev) =>
       prev.includes(id)
         ? prev.filter((memberId) => memberId !== id)
         : [...prev, id]
     );
-  };
+  }; */
 
   return (
     <>
@@ -228,7 +250,7 @@ export default function EventsPage() {
           <div className="col-span-3">
             <div id="draggable-el" className="mb-6 w-full border-2 p-2 rounded-md bg-muted/30">
               <h2 className="font-bold text-lg text-center mb-3">ドラッグできるイベント</h2>
-              {events.map(event => (
+              {dragEvents.map(event => (
                 <div
                   className="fc-event border-2 p-2 mb-2 w-full rounded-md text-center bg-white hover:bg-primary/10 cursor-pointer"
                   title={event.title}
@@ -480,9 +502,11 @@ export default function EventsPage() {
                             <div className="flex items-center space-x-2">
                               <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
                                 {member.avatar ? (
-                                  <img
+                                  <Image
                                     src={member.avatar}
                                     alt={member.name}
+                                    width={32}
+                                    height={32}
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
