@@ -6,7 +6,15 @@ import { DndContext, useSensor, useSensors, closestCenter } from "@dnd-kit/core"
 import { PointerSensor } from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
-import SortableItem from "@/components/sortable-item"; // Ensure this file exists at src/components/sortable-item.tsx
+import SortableItem from "@/components/sortable-item";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 
 // PT スロット定義
 const SLOT_KEYS = ["MT", "ST", "H1", "H2", "D1", "D2", "D3", "D4"] as const;
@@ -35,7 +43,7 @@ export default function PartyBuilderPage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 pl-10">
       <h1 className="text-2xl font-bold text-primary">PTビルダー</h1>
       <DndContext
         sensors={sensors}
@@ -44,32 +52,54 @@ export default function PartyBuilderPage() {
       >
         <div className="grid grid-cols-2 gap-6">
           {/* パーティスロット */}
-          <Card className="p-4">
+          <div>
             <h2 className="text-lg font-semibold mb-4">パーティスロット</h2>
-            <div className="grid grid-cols-4 gap-2">
-              {SLOT_KEYS.map((key) => (
-                <SlotBox
-                  key={key}
-                  slotKey={key}
-                  assignedId={slots[key]}
-                />
-              ))}
-            </div>
-          </Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-1/3">ロール</TableHead>
+                  <TableHead className="w-2/3">キャラクター</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {SLOT_KEYS.map((key) => (
+                  <TableRow key={key}>
+                    <TableCell className="font-medium w-1/3">{key}</TableCell>
+                    <TableCell className="w-2/3">
+                      <SlotBox
+                        slotKey={key}
+                        assignedId={slots[key]}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {/* メンバー候補 */}
-          <Card className="p-4">
+          <div>
             <h2 className="text-lg font-semibold mb-4">メンバー候補</h2>
-            <div className="space-y-2 max-h-[400px] overflow-auto">
-              {characters.map((member) => (
-                <SortableItem
-                  key={member.id}
-                  id={member.id.toString()}
-                  member={{ id: member.id, fullName: member.fullName }}
-                />
-              ))}
-            </div>
-          </Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>キャラクター名</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="max-h-[400px] overflow-auto">
+                {characters.map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell>
+                      <SortableItem
+                        id={member.id.toString()}
+                        member={{ id: member.id, fullName: member.fullName }}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </DndContext>
 
@@ -96,11 +126,11 @@ function SlotBox({
   return (
     <div
       ref={setNodeRef}
-      className={`h-12 border border-border rounded flex items-center justify-center bg-card ${
-        isOver ? 'bg-primary/20' : ''
+      className={`h-10 border border-border rounded flex items-center justify-center ${
+        isOver ? 'bg-primary/20' : 'bg-card'
       }`}
     >
-      {member ? member.fullName : slotKey}
+      {member ? member.fullName : "ドロップ"}
     </div>
   );
 }
