@@ -1,5 +1,4 @@
-import { requirements } from "./raidRequirements";
-import { GearKey, GearStatus } from "./types";
+import { GearStatus } from "./types";
 
 // Define a map of which tier drops which gear parts
 const gearDropTiers = {

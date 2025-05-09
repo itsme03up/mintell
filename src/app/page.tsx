@@ -1,4 +1,5 @@
 'use client';
+import { BookOpenIcon, CodeIcon, GlobeIcon } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -8,14 +9,12 @@ import {
 } from "../components/ui/card";
 import Hero from "../components/ui/Hero";
 import Link from "next/link";
-import { List, ListItem } from "../components/ui/List";
 
 export default function HomePage() {
   return (
     <>
       {/* Heroセクション */}
       <Hero />
-
       {/* 機能リンク */}
       <section className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 place-items-center">
@@ -30,7 +29,6 @@ export default function HomePage() {
               </CardContent>
             </Card>
           </Link>
-
           <Link href="/gear/layer/1" className="block w-1/2 max-w-xl no-underline">
             <Card className="w-full h-auto text-center transition-shadow hover:scale-105 transition-transform duration-200 cursor-pointer">
               <CardHeader className="py-3">
@@ -41,7 +39,6 @@ export default function HomePage() {
               </CardContent>
             </Card>
           </Link>
-
           <Link href="/party-builder" className="block w-1/2 max-w-xl no-underline">
             <Card className="w-full h-auto text-center transition-shadow hover:scale-105 transition-transform duration-200 cursor-pointer">
               <CardHeader className="py-3">
@@ -71,8 +68,8 @@ export default function HomePage() {
                 <CardTitle>参考サイト</CardTitle>
               </CardHeader>
               <CardContent>
-                <List className="space-y-2">
-                  <ListItem asChild>
+                <div className="space-y-2">
+                  <div>
                     <Link
                       href="https://jp.finalfantasyxiv.com/lodestone/"
                       target="_blank"
@@ -82,8 +79,8 @@ export default function HomePage() {
                       <GlobeIcon className="w-5 h-5" />
                       <span>Lodestone 公式サイト</span>
                     </Link>
-                  </ListItem>
-                  <ListItem asChild>
+                  </div>
+                  <div>
                     <Link
                       href="https://xivapi.com/"
                       target="_blank"
@@ -93,8 +90,8 @@ export default function HomePage() {
                       <CodeIcon className="w-5 h-5" />
                       <span>XIVAPI ドキュメント</span>
                     </Link>
-                  </ListItem>
-                  <ListItem asChild>
+                  </div>
+                  <div>
                     <Link
                       href="https://game8.jp/ff14"
                       target="_blank"
@@ -104,11 +101,20 @@ export default function HomePage() {
                       <BookOpenIcon className="w-5 h-5" />
                       <span>攻略サイト</span>
                     </Link>
-                  </ListItem>
-                </List>
+                  </div>
+                  <div>
+                    <Link
+                      href="https://example.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-2 hover:text-primary"
+                    >
+                      <GlobeIcon className="w-5 h-5" />
+                      <span>新しいリンク</span>
+                    </Link>
+                  </div>
               </CardContent>
             </Card>
-
         </div>
       </section>
     </>
