@@ -41,7 +41,7 @@ export default function NavBar() {
                   className="flex items-center p-2 rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   <link.icon className="h-5 w-5" />
-                  <span className="ml-3 block">{link.label}</span>
+                  <span className="ml-3 hidden sm:block">{link.label}</span>
                 </Link>
               </NavigationMenuItem>
             ))}
