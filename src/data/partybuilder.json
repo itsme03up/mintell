@@ -1,9 +1,9 @@
 [
   {
     "id": 1,
-    "partyname": "My Party",
+    "name": "My Party",
     "optIn": false,
-    "psrty": {
+    "slots": {
       "mt": false,
       "st": false,
       "h1": false,
