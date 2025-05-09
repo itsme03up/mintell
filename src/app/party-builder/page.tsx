@@ -45,16 +45,16 @@ export default function PartyBuilderPage() {
         } else {
           // Data in localStorage is malformed, use initial data from file
           console.warn("Party data in localStorage is malformed. Using initial data.");
-          setSavedParties(initialPartiesFromFile as SavedParty[]);
+          setSavedParties(initialPartiesFromFile as unknown as SavedParty[]);
         }
       } catch (error) {
         console.error("Failed to parse parties from localStorage:", error);
         // Fallback to initial data from file in case of parsing error
-        setSavedParties(initialPartiesFromFile as SavedParty[]);
+        setSavedParties(initialPartiesFromFile as unknown as SavedParty[]);
       }
     } else {
       // No parties in localStorage, use initial data from file
-      setSavedParties(initialPartiesFromFile as SavedParty[]);
+      setSavedParties(initialPartiesFromFile as unknown as SavedParty[]);
     }
   }, []);
 
