@@ -65,14 +65,31 @@ export default function PartyBuilderPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {SLOT_KEYS.map(key => (
-                  <TableRow key={key}>
-                    <TableCell className="font-medium">{key}</TableCell>
-                    <TableCell>
-                      <SlotBox slotKey={key} assignedId={slots[key]} />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {SLOT_KEYS.map(key => {
+                  const isTankRole = key === "MT" || key === "ST";
+                  const isHealerRole = key === "H1" || key === "H2";
+                  const isDpsRole = key === "D1" || key === "D2" || key === "D3" || key === "D4";
+                  
+                  let roleBgClass = "";
+                  if (isTankRole) {
+                    roleBgClass = "bg-blue-100 dark:bg-blue-900";
+                  } else if (isHealerRole) {
+                    roleBgClass = "bg-green-100 dark:bg-green-900";
+                  } else if (isDpsRole) {
+                    roleBgClass = "bg-red-100 dark:bg-red-900";
+                  }
+
+                  return (
+                    <TableRow 
+                      key={key}
+                    >
+                      <TableCell className={`font-medium ${roleBgClass}`}>{key}</TableCell>
+                      <TableCell className={roleBgClass}>
+                        <SlotBox slotKey={key} assignedId={slots[key]} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
