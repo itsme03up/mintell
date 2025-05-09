@@ -12,14 +12,14 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 const tokenCosts = [
   { key: 'weapon', label: '武器', cost: 500 },
   { key: 'body', label: '胴', cost: 825 },
-  { key: 'hands', label: '頭', cost: 495 },
+  { key: 'head', label: '頭', cost: 495 },
   { key: 'hands', label: '手', cost: 495 },
   { key: 'legs', label: '脚', cost: 825 },
   { key: 'feet', label: '足', cost: 495 },
   { key: 'necklace', label: '首', cost: 375 },
   { key: 'earrings', label: '耳', cost: 375 },
   { key: 'bracelet', label: '腕', cost: 375 },
-  { key: 'ring', label: '指1', cost: 375 },
+  { key: 'ring', label: '指', cost: 375 },
 ];
 
 export default function TokenCalculatorPage() {
