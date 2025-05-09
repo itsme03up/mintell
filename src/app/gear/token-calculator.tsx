@@ -10,17 +10,21 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 
 // トークンコスト定義
 const tokenCosts = [
-  { key: 'weapon', label: '武器', cost: 500 },
-  { key: 'body', label: '胴', cost: 825 },
-  { key: 'head', label: '頭', cost: 495 },
-  { key: 'hands', label: '手', cost: 495 },
-  { key: 'legs', label: '脚', cost: 825 },
-  { key: 'feet', label: '足', cost: 495 },
-  { key: 'necklace', label: '首', cost: 375 },
-  { key: 'earrings', label: '耳', cost: 375 },
-  { key: 'bracelet', label: '腕', cost: 375 },
-  { key: 'ring', label: '指', cost: 375 },
+  { key: 'weapon', label: '武器', cost: 500 }, // 武器：3層
+  { key: 'body', label: '胴', cost: 825 }, // 左防具：3層
+  { key: 'head', label: '頭', cost: 495 }, // 左防具：3層
+  { key: 'hands', label: '手', cost: 495 }, // 左防具：3層
+  { key: 'legs', label: '脚', cost: 825 }, // 左防具：3層
+  { key: 'feet', label: '足', cost: 495 }, // 左防具：3層
+  { key: 'necklace', label: '首', cost: 375 }, // アクセ：2層
+  { key: 'earrings', label: '耳', cost: 375 }, // アクセ：2層
+  { key: 'bracelet', label: '腕', cost: 375 }, // アクセ：2層
+  { key: 'ring', label: '指', cost: 375 }, // アクセ：2層
 ];
+// ※強化部位	入手方法
+// 武器：3層
+// 左防具	頭、胴、手、脚、足	：3層
+// アクセ：2層
 
 export default function TokenCalculatorPage() {
   // 選択状態
