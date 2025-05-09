@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import FullCalendar from "@fullcalendar/react";
+import { EventReceiveArg } from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -219,7 +220,7 @@ export default function EventsPage() {
   };
 
   // FullCalendarのeventReceiveハンドラを追加
-  const handleEventReceive = (eventInfo: any) => {
+  const handleEventReceive = (eventInfo: EventReceiveArg) => {
     if (eventInfo.event.title === "誕生日") {
       return;
     }
@@ -362,35 +363,6 @@ export default function EventsPage() {
                   <Label htmlFor="allDay" className="ml-2">終日イベント</Label>
                 </div>
               </div>
-
-              {/* 誕生日メンバー選択 - 誕生日イベントの場合のみ表示 */}
-              {newEvent.title === "誕生日" || newEvent.isBirthday ? (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="birthday-member" className="text-right">
-                    メンバー
-                  </Label>
-                  <div className="col-span-3">
-                    <select
-                      id="birthday-member"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                      value={newEvent.memberId || ""}
-                      onChange={(e) => setNewEvent({ 
-                        ...newEvent, 
-                        memberId: e.target.value ? Number(e.target.value) : undefined,
-                        isBirthday: true
-                      })}
-                    >
-                      <option value="">-- 誕生日のメンバーを選択 --</option>
-                      {sampleMembers.map(member => (
-                        <option key={member.id} value={member.id}>
-                          {member.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              ) : null}
-
               {/* パーティ構成セクション */}
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label className="text-right pt-1">パーティ構成</Label>

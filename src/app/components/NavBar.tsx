@@ -8,6 +8,7 @@ import {
   UsersRoundIcon,
   CalendarIcon,
   BookIcon,
+  StickyNoteIcon,
 } from "lucide-react";
 
 import {
@@ -19,10 +20,12 @@ import {
 const navLinks = [
   { href: "/", label: "Home", icon: HomeIcon },
   { href: "/members", label: "メンバー管理", icon: UsersIcon },
-  { href: "/gear", label: "零式管理", icon: ShieldIcon },
   { href: "/party-builder", label: "PTビルダー", icon: UsersRoundIcon },
+  { href: "/gear/layer/1", label: "零式管理", icon: ShieldIcon },
   { href: "/events", label: "イベント", icon: CalendarIcon },
-  { href: "/schedule", label: "メモ", icon: BookIcon },
+  { href: "/memo", label: "メモ", icon: StickyNoteIcon},
+  { href: "/blog", label: "お知らせ", icon: BookIcon },
+ 
 ];
 
 export default function NavBar() {
