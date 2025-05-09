@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import characters from "@/data/characters.json";
 import { DndContext, useSensor, useSensors, closestCenter, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
 import { PointerSensor } from "@dnd-kit/core";
@@ -8,17 +8,41 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import SortableItem from "../components/SortableItem";
 
 // PT スロットキー
 const SLOT_KEYS = ["MT", "ST", "H1", "H2", "D1", "D2", "D3", "D4"] as const;
 type SlotKey = typeof SLOT_KEYS[number];
 
+const initialSlotsState = () => SLOT_KEYS.reduce((acc, key) => ({ ...acc, [key]: null }), {} as Record<SlotKey, number | null>);
+
+interface SavedParty {
+  id: string;
+  name: string;
+  slots: Record<SlotKey, number | null>;
+}
+
+const LOCAL_STORAGE_KEY = "partyBuilderSavedParties";
+
 export default function PartyBuilderPage() {
-  const [slots, setSlots] = useState<Record<SlotKey, number | null>>(() => {
-    return SLOT_KEYS.reduce((acc, key) => ({ ...acc, [key]: null }), {} as Record<SlotKey, number | null>);
-  });
+  const [slots, setSlots] = useState<Record<SlotKey, number | null>>(initialSlotsState);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [partyName, setPartyName] = useState<string>("");
+  const [savedParties, setSavedParties] = useState<SavedParty[]>([]);
+
+  // Load saved parties from localStorage on mount
+  useEffect(() => {
+    const storedParties = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedParties) {
+      setSavedParties(JSON.parse(storedParties));
+    }
+  }, []);
+
+  // Save parties to localStorage whenever savedParties changes
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedParties));
+  }, [savedParties]);
 
   // DnD-kit センサー
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -36,16 +60,69 @@ export default function PartyBuilderPage() {
       const memberId = parseInt(active.id as string, 10);
       setSlots(prev => ({ ...prev, [slotKey]: memberId }));
     }
-    // TODO: Implement logic for reordering within the candidate list if needed
-    // TODO: Implement logic for dragging from slot back to candidate list
     setActiveId(null);
   };
 
   const activeCharacter = activeId ? characters.find(c => c.id.toString() === activeId) : null;
 
+  const handleSaveParty = () => {
+    if (!partyName.trim()) {
+      alert("PT名を入力してください。");
+      return;
+    }
+    const existingPartyIndex = savedParties.findIndex(p => p.name === partyName.trim());
+    if (existingPartyIndex > -1) {
+      // Update existing party
+      const updatedParties = [...savedParties];
+      updatedParties[existingPartyIndex] = { ...savedParties[existingPartyIndex], slots: { ...slots } };
+      setSavedParties(updatedParties);
+      alert(`PT「${partyName}」を更新しました。`);
+    } else {
+      // Add new party
+      const newParty: SavedParty = {
+        id: Date.now().toString(),
+        name: partyName.trim(),
+        slots: { ...slots },
+      };
+      setSavedParties(prev => [...prev, newParty]);
+      alert(`PT「${partyName}」を保存しました。`);
+    }
+  };
+
+  const handleLoadParty = (partyToLoad: SavedParty) => {
+    setSlots({ ...partyToLoad.slots });
+    setPartyName(partyToLoad.name);
+    alert(`PT「${partyToLoad.name}」を読み込みました。`);
+  };
+
+  const handleDeleteParty = (partyIdToDelete: string) => {
+    if (confirm("このPTを削除してもよろしいですか？")) {
+      setSavedParties(prev => prev.filter(p => p.id !== partyIdToDelete));
+      alert("PTを削除しました。");
+    }
+  };
+
+  const handleClearParty = () => {
+    setSlots(initialSlotsState());
+    setPartyName("");
+  };
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold text-primary">PTビルダー</h1>
+      
+      {/* Party Name Input and Save/Clear Buttons */}
+      <div className="flex items-center gap-4 mb-6">
+        <Input 
+          placeholder="PT名を入力" 
+          value={partyName} 
+          onChange={(e) => setPartyName(e.target.value)}
+          className="max-w-xs"
+        />
+        <Button variant="default" onClick={handleSaveParty}>PTを保存</Button>
+        <Button variant="outline" onClick={handleClearParty}>現在のPTをクリア</Button>
+      </div>
+
       <DndContext 
         sensors={sensors} 
         collisionDetection={closestCenter} 
@@ -56,7 +133,7 @@ export default function PartyBuilderPage() {
         <div className="grid grid-cols-2 gap-8">
           {/* PTスロット */}
           <div>
-            <h2 className="text-lg font-semibold mb-4">パーティスロット</h2>
+            <h2 className="text-lg font-semibold mb-4">パーティスロット {partyName && `(${partyName})`}</h2>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -123,9 +200,32 @@ export default function PartyBuilderPage() {
           ) : null}
         </DragOverlay>
       </DndContext>
-      <div className="pt-4">
-        <Button variant="default">PTを保存</Button>
-      </div>
+
+      {/* Saved Parties List */}
+      {savedParties.length > 0 && (
+        <div className="pt-8">
+          <h2 className="text-xl font-semibold mb-4">保存済みPT</h2>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>PT名</TableHead>
+                <TableHead className="text-right">アクション</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {savedParties.map(party => (
+                <TableRow key={party.id}>
+                  <TableCell className="font-medium">{party.name}</TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button variant="outline" size="sm" onClick={() => handleLoadParty(party)}>読み込む</Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleDeleteParty(party.id)}>削除</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
