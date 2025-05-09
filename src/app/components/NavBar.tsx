@@ -20,7 +20,7 @@ import {
 const navLinks = [
   { href: "/", label: "Home", icon: HomeIcon },
   { href: "/members", label: "メンバー管理", icon: UsersIcon },
-  { href: "/partie-builder", label: "PTビルダー", icon: UsersRoundIcon },
+  { href: "/party-builder", label: "PTビルダー", icon: UsersRoundIcon },
   { href: "/gear", label: "零式管理", icon: ShieldIcon },
   { href: "/events", label: "イベント", icon: CalendarIcon },
   { href: "/memo", label: "メモ", icon: StickyNoteIcon},
