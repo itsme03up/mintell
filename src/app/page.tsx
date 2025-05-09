@@ -1,14 +1,14 @@
 'use client';
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent 
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent
 } from "../components/ui/card";
 import Hero from "../components/ui/Hero";
 import Link from "next/link";
-import { List, ListItem } from "@/components/ui/list";
+import { List, ListItem } from "../components/ui/List";
 
 export default function HomePage() {
   return (
@@ -63,6 +63,52 @@ export default function HomePage() {
               </CardContent>
             </Card>
           </Link>
+          {/* 公式リンク集 */}
+          <section className="container mx-auto px-4 py-12">
+            <h2 className="text-2xl font-bold mb-4">公式リンク集</h2>
+            <Card className="p-6">
+              <CardHeader>
+                <CardTitle>参考サイト</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <List className="space-y-2">
+                  <ListItem asChild>
+                    <Link
+                      href="https://jp.finalfantasyxiv.com/lodestone/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-2 hover:text-primary"
+                    >
+                      <GlobeIcon className="w-5 h-5" />
+                      <span>Lodestone 公式サイト</span>
+                    </Link>
+                  </ListItem>
+                  <ListItem asChild>
+                    <Link
+                      href="https://xivapi.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-2 hover:text-primary"
+                    >
+                      <CodeIcon className="w-5 h-5" />
+                      <span>XIVAPI ドキュメント</span>
+                    </Link>
+                  </ListItem>
+                  <ListItem asChild>
+                    <Link
+                      href="https://game8.jp/ff14"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-2 hover:text-primary"
+                    >
+                      <BookOpenIcon className="w-5 h-5" />
+                      <span>攻略サイト</span>
+                    </Link>
+                  </ListItem>
+                </List>
+              </CardContent>
+            </Card>
+
         </div>
       </section>
     </>
