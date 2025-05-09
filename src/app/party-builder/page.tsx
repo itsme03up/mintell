@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import characters from "@/data/characters.json";
-import { DndContext, useSensor, useSensors, closestCenter, DragEndEvent } from "@dnd-kit/core";
+import { DndContext, useSensor, useSensors, closestCenter, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
 import { PointerSensor } from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import SortableItem from "../components/SortableItem";
@@ -17,9 +18,15 @@ export default function PartyBuilderPage() {
   const [slots, setSlots] = useState<Record<SlotKey, number | null>>(() => {
     return SLOT_KEYS.reduce((acc, key) => ({ ...acc, [key]: null }), {} as Record<SlotKey, number | null>);
   });
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   // DnD-kit センサー
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  // ドラッグ開始ハンドラ
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
 
   // ドラッグ終了ハンドラ
   const handleDragEnd = (event: DragEndEvent) => {
@@ -29,12 +36,23 @@ export default function PartyBuilderPage() {
       const memberId = parseInt(active.id as string, 10);
       setSlots(prev => ({ ...prev, [slotKey]: memberId }));
     }
+    // TODO: Implement logic for reordering within the candidate list if needed
+    // TODO: Implement logic for dragging from slot back to candidate list
+    setActiveId(null);
   };
+
+  const activeCharacter = activeId ? characters.find(c => c.id.toString() === activeId) : null;
 
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold text-primary">PTビルダー</h1>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <DndContext 
+        sensors={sensors} 
+        collisionDetection={closestCenter} 
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={() => setActiveId(null)}
+      >
         <div className="grid grid-cols-2 gap-8">
           {/* PTスロット */}
           <div>
@@ -63,16 +81,30 @@ export default function PartyBuilderPage() {
           <div>
             <h2 className="text-lg font-semibold mb-4">メンバー候補</h2>
             <div className="space-y-2 max-h-[400px] overflow-auto">
-              {characters.map(member => (
-                <SortableItem
-                  key={member.id}
-                  id={member.id.toString()}
-                  member={{ id: member.id, fullName: member.fullName }}
-                />
-              ))}
+              <SortableContext
+                items={characters.map(c => c.id.toString())}
+                strategy={verticalListSortingStrategy}
+              >
+                {characters.map(member => (
+                  <SortableItem
+                    key={member.id}
+                    id={member.id.toString()}
+                    member={{ id: member.id, fullName: member.fullName }}
+                  />
+                ))}
+              </SortableContext>
             </div>
           </div>
         </div>
+        <DragOverlay>
+          {activeCharacter ? (
+            <SortableItem
+              id={activeCharacter.id.toString()}
+              member={{ id: activeCharacter.id, fullName: activeCharacter.fullName }}
+              isDragging
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
       <div className="pt-4">
         <Button variant="default">PTを保存</Button>
