@@ -28,6 +28,8 @@ interface Event {
   allDay: boolean;
   id: number;
   color?: string;
+  isBirthday?: boolean;
+  memberId?: number;
 }
 
 // FullCalendar イベント関連の型
@@ -53,11 +55,11 @@ interface EventReceiveInfo {
 
 // ドラッグ可能なイベントデータ
 const dragEvents = [
-  { title: "レイド募集", id: "drag1" },
-  { title: "ギルド会議", id: "drag2" },
-  { title: "アライアンス討伐", id: "drag3" },
-  { title: "マップ探索", id: "drag4" },
-  { title: "PvP大会", id: "drag5" },
+  { title: "極・零式", id: "drag1" },
+  { title: "オフ会", id: "drag2" },
+  { title: "DD", id: "drag3" },
+  { title: "地図", id: "drag4" },
+  { title: "誕生日", id: "drag5" },
 ];
 
 // サンプルメンバーデータ
@@ -96,6 +98,8 @@ export default function EventsPage() {
     start: "",
     allDay: false,
     id: 0,
+    isBirthday: false,
+    memberId: undefined,
   });
 
   // パーティスロットの管理
@@ -155,7 +159,22 @@ export default function EventsPage() {
   // イベントの追加処理
   const handleAddEvent = () => {
     if (newEvent.title) {
-      const updatedEvents = [...allEvents, { ...newEvent, id: Date.now() }];
+      let finalTitle = newEvent.title;
+      
+      // 誕生日イベントで、メンバーが選択されている場合、タイトルを変更
+      if (newEvent.isBirthday && newEvent.memberId) {
+        const member = sampleMembers.find(m => m.id === newEvent.memberId);
+        if (member) {
+          finalTitle = `${newEvent.title}: ${member.name}`;
+        }
+      }
+      
+      const updatedEvents = [...allEvents, { 
+        ...newEvent, 
+        id: Date.now(),
+        title: finalTitle 
+      }];
+      
       setAllEvents(updatedEvents);
       setShowModal(false);
       setNewEvent({
@@ -163,21 +182,47 @@ export default function EventsPage() {
         start: "",
         allDay: false,
         id: 0,
+        isBirthday: false,
+        memberId: undefined
       });
     }
   };
 
   // イベントが受け取られたときの処理
   const handleReceive = (eventInfo: EventReceiveInfo) => {
-    const newEvent: Event = {
-      id: parseInt(eventInfo.draggedEl.getAttribute("id") || Date.now().toString()),
-      title: eventInfo.draggedEl.getAttribute("title") || "新しいイベント",
-      start: eventInfo.date,
-      allDay: eventInfo.allDay,
-      color: eventInfo.draggedEl.style.backgroundColor || colorOptions[Math.floor(Math.random() * colorOptions.length)]
-    };
+    const title = eventInfo.draggedEl.getAttribute("title") || "新しいイベント";
+    
+    // 誕生日イベントの場合
+    if (title === "誕生日") {
+      const id = parseInt(eventInfo.draggedEl.getAttribute("id") || Date.now().toString());
+      
+      // モーダルを開く前に最後に追加されたイベントを削除
+      setAllEvents(prev => {
+        if (prev.length > 0) {
+          return prev.slice(0, -1);
+        }
+        return prev;
+      });
+      
+      setNewEvent({
+        title: title,
+        start: eventInfo.date,
+        allDay: eventInfo.allDay,
+        id: id,
+        isBirthday: true,
+        memberId: undefined,
+        color: colorOptions[Math.floor(Math.random() * colorOptions.length)]
+      });
+      
+      setShowModal(true);
+    }
+  };
 
-    setAllEvents(prev => [...prev, newEvent]);
+  // FullCalendarのeventReceiveハンドラを追加
+  const handleEventReceive = (eventInfo: any) => {
+    if (eventInfo.event.title === "誕生日") {
+      return;
+    }
   };
 
   // イベントのクリック処理
@@ -202,19 +247,12 @@ export default function EventsPage() {
     setNewEvent({
       ...newEvent,
       start: info.dateStr,
-      allDay: info.allDay
+      allDay: info.allDay,
+      isBirthday: false,
+      memberId: undefined
     });
     setShowModal(true);
   };
-
-  // メンバー選択のトグル処理 - 未使用だが将来的に使う可能性があるため残しておく
-  /* const toggleMember = (id: number) => {
-    setSelectedMembers((prev) =>
-      prev.includes(id)
-        ? prev.filter((memberId) => memberId !== id)
-        : [...prev, id]
-    );
-  }; */
 
   return (
     <>
@@ -243,6 +281,7 @@ export default function EventsPage() {
                 eventClick={handleEventClick}
                 dateClick={handleDateClick}
                 drop={handleReceive}
+                eventReceive={handleEventReceive}
                 height="auto" />
             </Card>
           </div>
@@ -323,6 +362,34 @@ export default function EventsPage() {
                   <Label htmlFor="allDay" className="ml-2">終日イベント</Label>
                 </div>
               </div>
+
+              {/* 誕生日メンバー選択 - 誕生日イベントの場合のみ表示 */}
+              {newEvent.title === "誕生日" || newEvent.isBirthday ? (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="birthday-member" className="text-right">
+                    メンバー
+                  </Label>
+                  <div className="col-span-3">
+                    <select
+                      id="birthday-member"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      value={newEvent.memberId || ""}
+                      onChange={(e) => setNewEvent({ 
+                        ...newEvent, 
+                        memberId: e.target.value ? Number(e.target.value) : undefined,
+                        isBirthday: true
+                      })}
+                    >
+                      <option value="">-- 誕生日のメンバーを選択 --</option>
+                      {sampleMembers.map(member => (
+                        <option key={member.id} value={member.id}>
+                          {member.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              ) : null}
 
               {/* パーティ構成セクション */}
               <div className="grid grid-cols-4 items-start gap-4">
