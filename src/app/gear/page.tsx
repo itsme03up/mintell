@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import { Card } from "@/components/ui/card";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
+import { Card } from '@/components/ui/card';
 import {
   Table,
   TableHeader,
@@ -10,250 +10,255 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { GearKey, GearStatus } from "@/lib/types";
-import { calcNeededTiers } from "@/lib/calcEligibleLayer";
-import charactersData from "@/data/characters.json";
-import initialGearStatus from "@/data/gearStatus.json";
-import TokenCalculatorPage from "./token-calculator";
+} from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import TokenCalculatorPage from './token-calculator';
+import { GearKey, GearStatus } from '@/lib/types';
+import { calcNeededTiers } from '@/lib/calcEligibleLayer';
+import charactersData from '@/data/characters.json';
+import initialGearStatus from '@/data/gearStatus.json';
 
-// ジョブとそのロールの定義
-interface JobRole {
-  job: string;
-  role: 'tank' | 'healer' | 'dps';
-}
-
-const jobRoles: JobRole[] = [
-  // タンク - 青色
-  { job: "PLD", role: "tank" },
-  { job: "WAR", role: "tank" },
-  { job: "DRK", role: "tank" },
-  { job: "GNB", role: "tank" },
-  // ヒーラー - 緑色
-  { job: "WHM", role: "healer" },
-  { job: "SCH", role: "healer" },
-  { job: "AST", role: "healer" },
-  { job: "SGE", role: "healer" },
-  // DPS - 赤色
-  { job: "MNK", role: "dps" },
-  { job: "DRG", role: "dps" },
-  { job: "NIN", role: "dps" },
-  { job: "SAM", role: "dps" },
-  { job: "RPR", role: "dps" },
-  { job: "BRD", role: "dps" },
-  { job: "MCH", role: "dps" },
-  { job: "DNC", role: "dps" },
-  { job: "BLM", role: "dps" },
-  { job: "SMN", role: "dps" },
-  { job: "RDM", role: "dps" },
-];
-
-// ジョブに基づいて適切な色のクラスを返す関数
-const getJobColorClass = (job: string): string => {
-  const jobRole = jobRoles.find(item => item.job === job);
-  switch (jobRole?.role) {
-    case 'tank': return 'text-blue-500';
-    case 'healer': return 'text-green-500';
-    case 'dps': return 'text-red-500';
-    default: return '';
-  }
-};
-
-const progressOptions = [
-  "未設定", "新生", "蒼天", "紅蓮", "漆黒", "暁月", "黄金"
-];
-
-// Update GearStatus type to include optIn flag
+// Enhanced type with optIn
 interface EnhancedGearStatus extends GearStatus {
   optIn: boolean;
 }
 
-// Combine character data with gear status
-const mergeData = (): EnhancedGearStatus[] => {
-  // Create a map for quick lookup of gear status by ID
-  const gearMap = new Map(initialGearStatus.map(item => [item.id, item]));
-  
-  return charactersData.map(character => {
-    const existingData = gearMap.get(character.id);
+// Merge character and gear data
+function mergeData(): EnhancedGearStatus[] {
+  const gearMap = new Map(initialGearStatus.map(g => [g.id, g]));
+  return charactersData.map(c => {
+    const gearRec = gearMap.get(c.id);
     return {
-      id: character.id,
-      fullName: character.fullName,
-      optIn: existingData?.optIn || false, // Initialize optIn flag
-      gear: existingData?.gear || {
+      id: c.id,
+      fullName: c.fullName,
+      optIn: gearRec?.optIn ?? false,
+      gear: gearRec?.gear ?? {
         weapon: false, head: false, body: false, hands: false,
         legs: false, feet: false, ear: false, neck: false,
-        wrist: false, ring: false
-      }
+        wrist: false, ring: false,
+      },
     };
   });
-};
+}
+
+// Custom hook to load hidden members
+function useHiddenMembers() {
+  const [hidden, setHidden] = useState<Set<number>>(new Set());
+  useEffect(() => {
+    const setH = new Set(
+      charactersData.filter(c => (c as any).isHidden).map(c => c.id)
+    );
+    setHidden(setH);
+  }, []);
+  return hidden;
+}
+
+// Filter controls component
+function FilterControls({
+  showHidden,
+  onToggleHidden,
+  showOptInOnly,
+  onToggleOptInOnly,
+}: {
+  showHidden: boolean;
+  onToggleHidden: (val: boolean) => void;
+  showOptInOnly: boolean;
+  onToggleOptInOnly: (val: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="show-hidden"
+          checked={showHidden}
+          onCheckedChange={onToggleHidden}
+        />
+        <Label htmlFor="show-hidden">非表示メンバーを表示</Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="show-opt-in"
+          checked={showOptInOnly}
+          onCheckedChange={onToggleOptInOnly}
+        />
+        <Label htmlFor="show-opt-in">参加希望のみ表示</Label>
+      </div>
+    </div>
+  );
+}
+
+// Memoized Gear row for performance
+const GearRow = React.memo(function GearRow({
+  member,
+  avatarUrl,
+  gearKeys,
+  onGearToggle,
+  onOptInToggle,
+}: {
+  member: EnhancedGearStatus;
+  avatarUrl: string;
+  gearKeys: GearKey[];
+  onGearToggle: (id: number, key: GearKey) => void;
+  onOptInToggle: (id: number) => void;
+}) {
+  const needed = calcNeededTiers(member.gear);
+  return (
+    <TableRow key={member.id} className={member.optIn ? '' : 'opacity-50'}>
+      <TableCell className="pl-4">
+        <Image
+          src={avatarUrl}
+          alt={member.fullName}
+          width={32}
+          height={32}
+          className="rounded-full"
+        />
+      </TableCell>
+      <TableCell>{member.fullName}</TableCell>
+      <TableCell className="text-center">
+        <Checkbox
+          checked={member.optIn}
+          onCheckedChange={() => onOptInToggle(member.id)}
+        />
+      </TableCell>
+      {gearKeys.map(key => (
+        <TableCell key={key} className="text-center">
+          <Checkbox
+            checked={member.gear[key]}
+            onCheckedChange={() => onGearToggle(member.id, key)}
+          />
+        </TableCell>
+      ))}
+      <TableCell>
+        {needed.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {needed.map(t => (
+              <Badge
+                key={t}
+                variant="outline"
+                className="bg-amber-100 text-amber-800"
+              >
+                {t}層
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <Badge
+            variant="outline"
+            className="bg-green-100 text-green-800"
+          >
+            完了
+          </Badge>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+});
 
 export default function GearPage() {
+  const hiddenMembers = useHiddenMembers();
   const [gearData, setGearData] = useState<EnhancedGearStatus[]>(mergeData());
   const [showHidden, setShowHidden] = useState(false);
   const [showOptInOnly, setShowOptInOnly] = useState(false);
-  const [isSaving, setSaving] = useState(false);
-  const [hiddenMembers, setHiddenMembers] = useState<Set<number>>(new Set());
-  
-  // Load hidden members from characters data
-  useEffect(() => {
-    const hidden = new Set(
-      charactersData
-        .filter(c => c.isHidden)
-        .map(c => c.id)
-    );
-    setHiddenMembers(hidden);
+  const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Debounced save
+  const scheduleSave = useCallback((data: EnhancedGearStatus[]) => {
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        await fetch('/api/gear', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gear: data }),
+        });
+      } catch (e) {
+        console.error(e);
+        alert('保存に失敗しました');
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1000);
   }, []);
 
-  // Function to save gear data to the server
-  const saveGearData = async (updatedGear: EnhancedGearStatus[]) => {
-    try {
-      setSaving(true);
-      const response = await fetch('/api/gear', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ gear: updatedGear }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save data');
-      }
-    } catch (error) {
-      console.error('Error saving gear data:', error);
-      alert('データの保存に失敗しました。');
-    } finally {
-      setSaving(false);
-    }
+  // Toggle gear
+  const handleGearToggle = (memberId: number, key: GearKey) => {
+    setGearData(prev => {
+      const next = prev.map(m =>
+        m.id === memberId
+          ? { ...m, gear: { ...m.gear, [key]: !m.gear[key] } }
+          : m
+      );
+      scheduleSave(next);
+      return next;
+    });
   };
 
-  const handleGearToggle = (memberId: number, gearKey: GearKey) => {
-    const updatedGear = gearData.map(member =>
-      member.id === memberId
-        ? { ...member, gear: { ...member.gear, [gearKey]: !member.gear[gearKey] } }
-        : member
-    );
-    
-    setGearData(updatedGear);
-    saveGearData(updatedGear);
-  };
-
-  // Handle opt-in status toggle
+  // Toggle opt-in
   const handleOptInToggle = (memberId: number) => {
-    const updatedGear = gearData.map(member =>
-      member.id === memberId
-        ? { ...member, optIn: !member.optIn }
-        : member
-    );
-    
-    setGearData(updatedGear);
-    saveGearData(updatedGear);
+    setGearData(prev => {
+      const next = prev.map(m =>
+        m.id === memberId ? { ...m, optIn: !m.optIn } : m
+      );
+      scheduleSave(next);
+      return next;
+    });
   };
 
-  // Update filtering to consider both hidden status and opt-in status
-  const visibleMembers = gearData.filter(member => 
-    (showHidden || !hiddenMembers.has(member.id)) && 
-    (!showOptInOnly || member.optIn)
+  // Filtered members
+  const visible = gearData.filter(
+    m => (showHidden || !hiddenMembers.has(m.id)) && (!showOptInOnly || m.optIn)
   );
-  
-  // Get all gear keys for the table header
-  const gearKeys = Object.keys(gearData[0]?.gear || {}) as GearKey[];
+  const gearKeys = Object.keys(gearData[0].gear) as GearKey[];
 
   return (
-    <div className="space-y-6 p-6 pl-10">
-      <h1 className="text-2xl font-bold text-primary">零式装備管理</h1>
-      <div className="space-y-4">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="show-hidden"
-              checked={showHidden}
-              onCheckedChange={(checked) => setShowHidden(checked as boolean)}
-            />
-            <Label htmlFor="show-hidden">非表示メンバーを表示</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="show-opt-in-only"
-              checked={showOptInOnly}
-              onCheckedChange={(checked) => setShowOptInOnly(checked as boolean)}
-            />
-            <Label htmlFor="show-opt-in-only">参加希望のみ表示</Label>
-          </div>
-        </div>
-        <Card className="p-4 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>アバター</TableHead>
-                <TableHead>名前</TableHead>
-                <TableHead className="text-center">参加?</TableHead>
-                {gearKeys.map(key => (
-                  <TableHead key={key} className="text-center">{key}</TableHead>
-                ))}
-                <TableHead>必要な層</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visibleMembers.map((member) => {
-                const neededTiers = calcNeededTiers(member.gear);
-                const character = charactersData.find(c => c.id === member.id);
-                
-                return (
-                  <TableRow key={member.id} className={member.optIn ? "" : "opacity-50"}>
-                    <TableCell className="pl-4">
-                      <Image
-                        src={character?.avatarUrl || '/placeholder-avatar.png'}
-                        alt={member.fullName}
-                        width={32}
-                        height={32}
-                        className="rounded-full"
-                      />
-                    </TableCell>
-                    <TableCell>{member.fullName}</TableCell>
-                    <TableCell className="text-center">
-                      <Checkbox
-                        checked={member.optIn}
-                        onCheckedChange={() => handleOptInToggle(member.id)}
-                        aria-label={`Toggle participation for ${member.fullName}`}
-                      />
-                    </TableCell>
-                    {gearKeys.map(key => (
-                      <TableCell key={key} className="text-center">
-                        <Checkbox
-                          checked={member.gear[key]}
-                          onCheckedChange={() => handleGearToggle(member.id, key)}
-                          aria-label={`Toggle ${key} for ${member.fullName}`}
-                        />
-                      </TableCell>
-                    ))}
-                    <TableCell>
-                      {neededTiers.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {neededTiers.map(tier => (
-                            <Badge key={tier} variant="outline" className="bg-amber-100 text-amber-800">
-                              {tier}層
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        <Badge variant="outline" className="bg-green-100 text-green-800">
-                          完了
-                        </Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Card>
-      </div>
+    <div className="space-y-6 p-6">
+      <h1 className="text-2xl font-bold text-primary">
+        零式装備管理 {isSaving && '（保存中…）'}
+      </h1>
+      <FilterControls
+        showHidden={showHidden}
+        onToggleHidden={v => setShowHidden(v as boolean)}
+        showOptInOnly={showOptInOnly}
+        onToggleOptInOnly={v => setShowOptInOnly(v as boolean)}
+      />
+      <Card className="p-4 overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>アバター</TableHead>
+              <TableHead>名前</TableHead>
+              <TableHead className="text-center">参加?</TableHead>
+              {gearKeys.map(key => (
+                <TableHead key={key} className="text-center">
+                  {key}
+                </TableHead>
+              ))}
+              <TableHead>必要な層</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visible.map(member => {
+              const char = charactersData.find(c => c.id === member.id);
+              const avatarUrl = char?.avatarUrl || '/placeholder-avatar.png';
+              return (
+                <GearRow
+                  key={member.id}
+                  member={member}
+                  avatarUrl={avatarUrl}
+                  gearKeys={gearKeys}
+                  onGearToggle={handleGearToggle}
+                  onOptInToggle={handleOptInToggle}
+                />
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Card>
+      {/* トークン計算機 */}
       <TokenCalculatorPage />
     </div>
   );
