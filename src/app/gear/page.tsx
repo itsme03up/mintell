@@ -19,6 +19,7 @@ import { GearKey, GearStatus } from "@/lib/types";
 import { calcNeededTiers } from "@/lib/calcEligibleLayer";
 import charactersData from "@/data/characters.json";
 import initialGearStatus from "@/data/gearStatus.json";
+import TokenCalculatorPage from "./token-calculator";
 
 // ジョブとそのロールの定義
 interface JobRole {
@@ -164,93 +165,96 @@ export default function GearPage() {
   const gearKeys = Object.keys(gearData[0]?.gear || {}) as GearKey[];
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">零式装備管理</h1>
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="show-hidden"
-            checked={showHidden}
-            onCheckedChange={(checked) => setShowHidden(checked as boolean)}
-          />
-          <Label htmlFor="show-hidden">非表示メンバーを表示</Label>
+    <div className="space-y-6 p-6 pl-10">
+      <h1 className="text-2xl font-bold text-primary">零式装備管理</h1>
+      <div className="space-y-4">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="show-hidden"
+              checked={showHidden}
+              onCheckedChange={(checked) => setShowHidden(checked as boolean)}
+            />
+            <Label htmlFor="show-hidden">非表示メンバーを表示</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="show-opt-in-only"
+              checked={showOptInOnly}
+              onCheckedChange={(checked) => setShowOptInOnly(checked as boolean)}
+            />
+            <Label htmlFor="show-opt-in-only">参加希望のみ表示</Label>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="show-opt-in-only"
-            checked={showOptInOnly}
-            onCheckedChange={(checked) => setShowOptInOnly(checked as boolean)}
-          />
-          <Label htmlFor="show-opt-in-only">参加希望のみ表示</Label>
-        </div>
-      </div>
-      <Card className="p-4 overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>アバター</TableHead>
-              <TableHead>名前</TableHead>
-              <TableHead className="text-center">参加?</TableHead>
-              {gearKeys.map(key => (
-                <TableHead key={key} className="text-center">{key}</TableHead>
-              ))}
-              <TableHead>必要な層</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {visibleMembers.map((member) => {
-              const neededTiers = calcNeededTiers(member.gear);
-              const character = charactersData.find(c => c.id === member.id);
-              
-              return (
-                <TableRow key={member.id} className={member.optIn ? "" : "opacity-50"}>
-                  <TableCell className="pl-4">
-                    <Image
-                      src={character?.avatarUrl || '/placeholder-avatar.png'}
-                      alt={member.fullName}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                  </TableCell>
-                  <TableCell>{member.fullName}</TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={member.optIn}
-                      onCheckedChange={() => handleOptInToggle(member.id)}
-                      aria-label={`Toggle participation for ${member.fullName}`}
-                    />
-                  </TableCell>
-                  {gearKeys.map(key => (
-                    <TableCell key={key} className="text-center">
-                      <Checkbox
-                        checked={member.gear[key]}
-                        onCheckedChange={() => handleGearToggle(member.id, key)}
-                        aria-label={`Toggle ${key} for ${member.fullName}`}
+        <Card className="p-4 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>アバター</TableHead>
+                <TableHead>名前</TableHead>
+                <TableHead className="text-center">参加?</TableHead>
+                {gearKeys.map(key => (
+                  <TableHead key={key} className="text-center">{key}</TableHead>
+                ))}
+                <TableHead>必要な層</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {visibleMembers.map((member) => {
+                const neededTiers = calcNeededTiers(member.gear);
+                const character = charactersData.find(c => c.id === member.id);
+                
+                return (
+                  <TableRow key={member.id} className={member.optIn ? "" : "opacity-50"}>
+                    <TableCell className="pl-4">
+                      <Image
+                        src={character?.avatarUrl || '/placeholder-avatar.png'}
+                        alt={member.fullName}
+                        width={32}
+                        height={32}
+                        className="rounded-full"
                       />
                     </TableCell>
-                  ))}
-                  <TableCell>
-                    {neededTiers.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {neededTiers.map(tier => (
-                          <Badge key={tier} variant="outline" className="bg-amber-100 text-amber-800">
-                            {tier}層
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <Badge variant="outline" className="bg-green-100 text-green-800">
-                        完了
-                      </Badge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Card>
+                    <TableCell>{member.fullName}</TableCell>
+                    <TableCell className="text-center">
+                      <Checkbox
+                        checked={member.optIn}
+                        onCheckedChange={() => handleOptInToggle(member.id)}
+                        aria-label={`Toggle participation for ${member.fullName}`}
+                      />
+                    </TableCell>
+                    {gearKeys.map(key => (
+                      <TableCell key={key} className="text-center">
+                        <Checkbox
+                          checked={member.gear[key]}
+                          onCheckedChange={() => handleGearToggle(member.id, key)}
+                          aria-label={`Toggle ${key} for ${member.fullName}`}
+                        />
+                      </TableCell>
+                    ))}
+                    <TableCell>
+                      {neededTiers.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {neededTiers.map(tier => (
+                            <Badge key={tier} variant="outline" className="bg-amber-100 text-amber-800">
+                              {tier}層
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <Badge variant="outline" className="bg-green-100 text-green-800">
+                          完了
+                        </Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Card>
+      </div>
+      <TokenCalculatorPage />
     </div>
   );
 }
