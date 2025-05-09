@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "partyname": "My Party",
+    "optIn": false,
+    "psrty": {
+      "mt": false,
+      "st": false,
+      "h1": false,
+      "h2": false,
+      "d1": false,
+      "d2": false,
+      "d3": false,
+      "d4": false
+    }
+  }
+]

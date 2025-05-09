@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import characters from "@/data/characters.json";
+import initialPartiesFromFile from "@/data/partybuilder.json"; // Import the JSON file
 import { DndContext, useSensor, useSensors, closestCenter, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
 import { PointerSensor } from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
@@ -31,11 +32,29 @@ export default function PartyBuilderPage() {
   const [partyName, setPartyName] = useState<string>("");
   const [savedParties, setSavedParties] = useState<SavedParty[]>([]);
 
-  // Load saved parties from localStorage on mount
+  // Load saved parties from localStorage or partybuilder.json on mount
   useEffect(() => {
     const storedParties = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (storedParties) {
-      setSavedParties(JSON.parse(storedParties));
+      try {
+        const parsedParties = JSON.parse(storedParties);
+        if (Array.isArray(parsedParties)) {
+          // Validate structure of each party if necessary
+          // For now, assume structure is correct if it's an array
+          setSavedParties(parsedParties);
+        } else {
+          // Data in localStorage is malformed, use initial data from file
+          console.warn("Party data in localStorage is malformed. Using initial data.");
+          setSavedParties(initialPartiesFromFile as SavedParty[]);
+        }
+      } catch (error) {
+        console.error("Failed to parse parties from localStorage:", error);
+        // Fallback to initial data from file in case of parsing error
+        setSavedParties(initialPartiesFromFile as SavedParty[]);
+      }
+    } else {
+      // No parties in localStorage, use initial data from file
+      setSavedParties(initialPartiesFromFile as SavedParty[]);
     }
   }, []);
 
