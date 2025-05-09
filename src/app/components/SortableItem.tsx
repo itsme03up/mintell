@@ -10,14 +10,16 @@ interface SortableItemProps {
     id: number;
     fullName: string;
   };
+  isDragging?: boolean;
 }
 
-export default function SortableItem({ id, member }: SortableItemProps) {
+export default function SortableItem({ id, member, isDragging }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    cursor: "grab",
+    cursor: isDragging ? "grabbing" : "grab",
+    opacity: isDragging ? 0.5 : 1,
   };
 
   return (
