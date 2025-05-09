@@ -8,6 +8,7 @@ import {
 } from "../components/ui/card";
 import Hero from "../components/ui/Hero";
 import Link from "next/link";
+import { List, ListItem } from "@/components/ui/list";
 
 export default function HomePage() {
   return (
