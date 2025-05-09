@@ -80,7 +80,7 @@ const getJobColorClass = (job: string): string => {
 };
 
 const progressOptions = [
-  "未設定", "新生", "蒼天", "紅蓮", "漆黒", "暁月", "黄金"
+  "未設定", "新生", "蒼天", "紅蓮", "漆黒", "暁月", "黄金7.0", "黄金7.1","黄金7.2"
 ];
 
 const initialMembers: Member[] = charactersData.map(character => ({
