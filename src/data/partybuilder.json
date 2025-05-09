@@ -13,5 +13,38 @@
       "d3": false,
       "d4": false
     }
+  },
+  {
+    "id": "fixed_party_alpha",
+    "name": "固定PTアルファ",
+    "members": [
+      { "slot": "MT", "memberId": 1 },
+      { "slot": "ST", "memberId": 2 },
+      { "slot": "H1", "memberId": 3 },
+      { "slot": "H2", "memberId": 4 },
+      { "slot": "D1", "memberId": 5 },
+      { "slot": "D2", "memberId": 6 },
+      { "slot": "D3", "memberId": 7 },
+      { "slot": "D4", "memberId": 8 }
+    ]
+  },
+  {
+    "id": "raid_team_omega",
+    "name": "レイドチーム・オメガ",
+    "members": [
+      { "slot": "MT", "memberId": 1 },
+      { "slot": "H1", "memberId": 2 },
+      { "slot": "D1", "memberId": 3 },
+      { "slot": "D2", "memberId": 5 }
+    ]
+  },
+  {
+    "id": "casual_friends_group",
+    "name": "ゆるふわフレンズ",
+    "members": [
+      { "slot": "ANY", "memberId": 4 },
+      { "slot": "ANY", "memberId": 6 },
+      { "slot": "ANY", "memberId": 7 }
+    ]
   }
 ]

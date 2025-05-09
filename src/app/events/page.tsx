@@ -22,6 +22,16 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Image from "next/image";
 
+// Import party data (assuming it will be created in src/data)
+// Note: You'll need to create this file.
+// For now, we'll use a placeholder if the import fails or the file is empty.
+let partyBuilderData: any[] = [];
+try {
+  partyBuilderData = require('@/data/partybuilder.json');
+} catch (e) {
+  console.warn("Could not load @/data/partybuilder.json. Proceeding with empty party configurations.");
+}
+
 // イベントインターフェース
 interface Event {
   title: string;
@@ -30,7 +40,8 @@ interface Event {
   id: number;
   color?: string;
   isBirthday?: boolean;
-  memberId?: number;
+  memberId?: number; // For birthday person
+  partyMembers?: number[]; // For general event party
 }
 
 // FullCalendar イベント関連の型
@@ -101,45 +112,14 @@ export default function EventsPage() {
     id: 0,
     isBirthday: false,
     memberId: undefined,
+    partyMembers: [],
   });
+  const [partyConfigurations, setPartyConfigurations] = useState<any[]>([]);
 
-  // パーティスロットの管理
-  const [partySlots, setPartySlots] = useState<{
-    [key: string]: number | null;
-  }>({
-    MT: null,
-    ST: null,
-    H1: null,
-    H2: null,
-    D1: null,
-    D2: null,
-    D3: null,
-    D4: null,
-  });
-
-  // パーティスロットの割り当て/解除
-  const assignToSlot = (slot: string, memberId: number | null) => {
-    // 既に他のスロットに割り当てられている場合、そのスロットから削除
-    if (memberId !== null) {
-      const currentSlot = Object.entries(partySlots).find(
-        ([, id]) => id === memberId
-      )?.[0];
-
-      if (currentSlot) {
-        setPartySlots(prev => ({ ...prev, [currentSlot]: null }));
-      }
-    }
-
-    // 新しいスロットに割り当て
-    setPartySlots(prev => ({ ...prev, [slot]: memberId }));
-  };
-
-  // メンバーがどのスロットに割り当てられているか確認
-  const getMemberSlot = (memberId: number) => {
-    return Object.entries(partySlots).find(
-      ([, id]) => id === memberId
-    )?.[0] || null;
-  };
+  // Load party configurations from JSON
+  useEffect(() => {
+    setPartyConfigurations(partyBuilderData || []);
+  }, []);
 
   // ドラッグ＆ドロップの設定
   useEffect(() => {
@@ -149,7 +129,7 @@ export default function EventsPage() {
         itemSelector: ".fc-event",
         eventData: function (eventEl) {
           const title = eventEl.getAttribute("title");
-          const id = new Date().getTime(); // ユニークIDの生成
+          const id = new Date().getTime();
           const color = colorOptions[Math.floor(Math.random() * colorOptions.length)];
           return { title, id, color, allDay: true };
         }
@@ -162,7 +142,6 @@ export default function EventsPage() {
     if (newEvent.title) {
       let finalTitle = newEvent.title;
       
-      // 誕生日イベントで、メンバーが選択されている場合、タイトルを変更
       if (newEvent.isBirthday && newEvent.memberId) {
         const member = sampleMembers.find(m => m.id === newEvent.memberId);
         if (member) {
@@ -170,11 +149,13 @@ export default function EventsPage() {
         }
       }
       
-      const updatedEvents = [...allEvents, { 
+      const eventToAdd: Event = { 
         ...newEvent, 
         id: Date.now(),
-        title: finalTitle 
-      }];
+        title: finalTitle,
+      };
+      
+      const updatedEvents = [...allEvents, eventToAdd];
       
       setAllEvents(updatedEvents);
       setShowModal(false);
@@ -184,7 +165,8 @@ export default function EventsPage() {
         allDay: false,
         id: 0,
         isBirthday: false,
-        memberId: undefined
+        memberId: undefined,
+        partyMembers: [],
       });
     }
   };
@@ -193,11 +175,9 @@ export default function EventsPage() {
   const handleReceive = (eventInfo: EventReceiveInfo) => {
     const title = eventInfo.draggedEl.getAttribute("title") || "新しいイベント";
     
-    // 誕生日イベントの場合
     if (title === "誕生日") {
       const id = parseInt(eventInfo.draggedEl.getAttribute("id") || Date.now().toString());
       
-      // モーダルを開く前に最後に追加されたイベントを削除
       setAllEvents(prev => {
         if (prev.length > 0) {
           return prev.slice(0, -1);
@@ -219,22 +199,19 @@ export default function EventsPage() {
     }
   };
 
-  // FullCalendarのeventReceiveハンドラを追加
   const handleEventReceive = (eventInfo: EventReceiveArg) => {
     if (eventInfo.event.title === "誕生日") {
       return;
     }
   };
 
-  // イベントのクリック処理
   const handleEventClick = (eventInfo: EventClickInfo) => {
-      if (eventInfo.event.start) {
-          setIdToDelete(Number(eventInfo.event.id));
-          setShowDeleteModal(true);
-      }
+    if (eventInfo.event.start) {
+      setIdToDelete(Number(eventInfo.event.id));
+      setShowDeleteModal(true);
+    }
   };
 
-  // イベントの削除処理
   const handleDeleteEvent = () => {
     if (idToDelete) {
       setAllEvents(allEvents.filter(event => event.id !== idToDelete));
@@ -243,7 +220,6 @@ export default function EventsPage() {
     setIdToDelete(null);
   };
 
-  // 日付のクリック処理
   const handleDateClick = (info: DateClickInfo) => {
     setNewEvent({
       ...newEvent,
@@ -333,7 +309,6 @@ export default function EventsPage() {
                   onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                 />
               </div>
-            </div>
 
               {/* 日付・時間 */}
               <div className="grid grid-cols-4 items-center gap-4">
@@ -363,219 +338,80 @@ export default function EventsPage() {
                   <Label htmlFor="allDay" className="ml-2">終日イベント</Label>
                 </div>
               </div>
-              {/* パーティ構成セクション */}
-              <div className="grid grid-cols-4 items-start gap-4">
+
+              {/* 新しいパーティ構成セクション */}
+              <div className="grid grid-cols-4 items-start gap-4 mt-4">
                 <Label className="text-right pt-1">パーティ構成</Label>
-                <div className="col-span-3 grid grid-cols-2 gap-4">
-                  {/* パーティスロット（左） */}
-                  <div className="space-y-2 border rounded-md p-3">
-                    <h3 className="font-medium text-sm mb-2">ロール割り当て</h3>
-
-                    {/* タンク */}
-                    <div className="space-y-1">
-                      <div className="flex items-center border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950/30 pl-2 py-1 rounded-r-sm">
-                        <span className="text-blue-700 dark:text-blue-300 font-medium text-sm w-8">MT</span>
-                        <select
-                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
-                          value={partySlots.MT || ""}
-                          onChange={(e) => assignToSlot("MT", e.target.value ? Number(e.target.value) : null)}
-                        >
-                          <option value="">-- 選択 --</option>
-                          {sampleMembers
-                            .filter(m => m.role === "タンク")
-                            .map(member => (
-                              <option key={member.id} value={member.id}>
-                                {member.name}
-                              </option>
-                            ))}
-                        </select>
+                <div className="col-span-3 space-y-4">
+                  {/* Option 1: Select from pre-registered parties */}
+                  <div>
+                    <Label htmlFor="party-config-select">登録済みPTから選択</Label>
+                    <select
+                      id="party-config-select"
+                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      onChange={(e) => {
+                        const selectedPartyId = e.target.value;
+                        const selectedParty = partyConfigurations.find(p => p.id === selectedPartyId);
+                        if (selectedParty) {
+                          setNewEvent({ ...newEvent, partyMembers: selectedParty.members.map((m: any) => m.memberId) });
+                        } else {
+                          setNewEvent({ ...newEvent, partyMembers: [] });
+                        }
+                      }}
+                      value={newEvent.partyMembers && newEvent.partyMembers.length > 0 && partyConfigurations.find(p => JSON.stringify(p.members.map((m:any) => m.memberId).sort()) === JSON.stringify([...newEvent.partyMembers!].sort()))?.id || ""}
+                    >
+                      <option value="">-- 手動で構成または選択 --</option>
+                      {partyConfigurations.map((party) => (
+                        <option key={party.id} value={party.id}>
+                          {party.name}
+                        </option>
+                      ))}
+                    </select>
+                    {newEvent.partyMembers && newEvent.partyMembers.length > 0 && (
+                      <div className="mt-2 text-sm text-gray-600">
+                        選択中のメンバー: {newEvent.partyMembers.map(id => sampleMembers.find(m => m.id === id)?.name || `ID:${id}`).join(', ')}
                       </div>
-
-                      <div className="flex items-center border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950/30 pl-2 py-1 rounded-r-sm">
-                        <span className="text-blue-700 dark:text-blue-300 font-medium text-sm w-8">ST</span>
-                        <select
-                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
-                          value={partySlots.ST || ""}
-                          onChange={(e) => assignToSlot("ST", e.target.value ? Number(e.target.value) : null)}
-                        >
-                          <option value="">-- 選択 --</option>
-                          {sampleMembers
-                            .filter(m => m.role === "タンク")
-                            .map(member => (
-                              <option key={member.id} value={member.id}>
-                                {member.name}
-                              </option>
-                            ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* ヒーラー */}
-                    <div className="space-y-1 mt-3">
-                      <div className="flex items-center border-l-4 border-green-500 bg-green-50 dark:bg-green-950/30 pl-2 py-1 rounded-r-sm">
-                        <span className="text-green-700 dark:text-green-300 font-medium text-sm w-8">H1</span>
-                        <select
-                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
-                          value={partySlots.H1 || ""}
-                          onChange={(e) => assignToSlot("H1", e.target.value ? Number(e.target.value) : null)}
-                        >
-                          <option value="">-- 選択 --</option>
-                          {sampleMembers
-                            .filter(m => m.role === "ヒーラー")
-                            .map(member => (
-                              <option key={member.id} value={member.id}>
-                                {member.name}
-                              </option>
-                            ))}
-                        </select>
-                      </div>
-
-                      <div className="flex items-center border-l-4 border-green-500 bg-green-50 dark:bg-green-950/30 pl-2 py-1 rounded-r-sm">
-                        <span className="text-green-700 dark:text-green-300 font-medium text-sm w-8">H2</span>
-                        <select
-                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
-                          value={partySlots.H2 || ""}
-                          onChange={(e) => assignToSlot("H2", e.target.value ? Number(e.target.value) : null)}
-                        >
-                          <option value="">-- 選択 --</option>
-                          {sampleMembers
-                            .filter(m => m.role === "ヒーラー")
-                            .map(member => (
-                              <option key={member.id} value={member.id}>
-                                {member.name}
-                              </option>
-                            ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* DPS */}
-                    <div className="space-y-1 mt-3">
-                      <div className="flex items-center border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 pl-2 py-1 rounded-r-sm">
-                        <span className="text-red-700 dark:text-red-300 font-medium text-sm w-8">D1</span>
-                        <select
-                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
-                          value={partySlots.D1 || ""}
-                          onChange={(e) => assignToSlot("D1", e.target.value ? Number(e.target.value) : null)}
-                        >
-                          <option value="">-- 選択 --</option>
-                          {sampleMembers
-                            .filter(m => m.role === "DPS")
-                            .map(member => (
-                              <option key={member.id} value={member.id}>
-                                {member.name}
-                              </option>
-                            ))}
-                        </select>
-                      </div>
-
-                      <div className="flex items-center border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 pl-2 py-1 rounded-r-sm">
-                        <span className="text-red-700 dark:text-red-300 font-medium text-sm w-8">D2</span>
-                        <select
-                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
-                          value={partySlots.D2 || ""}
-                          onChange={(e) => assignToSlot("D2", e.target.value ? Number(e.target.value) : null)}
-                        >
-                          <option value="">-- 選択 --</option>
-                          {sampleMembers
-                            .filter(m => m.role === "DPS")
-                            .map(member => (
-                              <option key={member.id} value={member.id}>
-                                {member.name}
-                              </option>
-                            ))}
-                        </select>
-                      </div>
-
-                      <div className="flex items-center border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 pl-2 py-1 rounded-r-sm">
-                        <span className="text-red-700 dark:text-red-300 font-medium text-sm w-8">D3</span>
-                        <select
-                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
-                          value={partySlots.D3 || ""}
-                          onChange={(e) => assignToSlot("D3", e.target.value ? Number(e.target.value) : null)}
-                        >
-                          <option value="">-- 選択 --</option>
-                          {sampleMembers
-                            .filter(m => m.role === "DPS")
-                            .map(member => (
-                              <option key={member.id} value={member.id}>
-                                {member.name}
-                              </option>
-                            ))}
-                        </select>
-                      </div>
-
-                      <div className="flex items-center border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 pl-2 py-1 rounded-r-sm">
-                        <span className="text-red-700 dark:text-red-300 font-medium text-sm w-8">D4</span>
-                        <select
-                          className="flex-1 ml-2 text-sm bg-transparent border-0 focus:ring-0"
-                          value={partySlots.D4 || ""}
-                          onChange={(e) => assignToSlot("D4", e.target.value ? Number(e.target.value) : null)}
-                        >
-                          <option value="">-- 選択 --</option>
-                          {sampleMembers
-                            .filter(m => m.role === "DPS")
-                            .map(member => (
-                              <option key={member.id} value={member.id}>
-                                {member.name}
-                              </option>
-                            ))}
-                        </select>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
-                  {/* メンバーリスト（右） */}
-                  <div className="h-[300px] border rounded-md p-2 overflow-y-auto">
-                    <h3 className="font-medium text-sm mb-2">メンバー一覧</h3>
-                    <div className="space-y-2">
-                      {sampleMembers.map((member) => {
-                        const assignedSlot = getMemberSlot(member.id);
-                        return (
-                          <div
-                            key={member.id}
-                            className={`flex items-center space-x-2 py-1 px-2 rounded ${
-                              assignedSlot ? 'bg-gray-100 dark:bg-gray-800' : 'hover:bg-gray-50 dark:hover:bg-gray-900'
-                            }`}
-                          >
-                            <div className="flex items-center space-x-2">
-                              <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
-                                {member.avatar ? (
-                                  <Image
-                                    src={member.avatar}
-                                    alt={member.name}
-                                    width={32}
-                                    height={32}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-gray-500">
-                                    {member.name.charAt(0)}
-                                  </div>
-                                )}
-                              </div>
-                              <div>
-                                <p className="font-medium text-sm">{member.name}</p>
-                                <p className="text-xs text-gray-500">
-                                  {member.role} {assignedSlot && `(${assignedSlot})`}
-                                </p>
-                              </div>
-                            </div>
+                  {/* Option 2: Drag and drop members */}
+                  <div className="border rounded-md p-3">
+                    <h3 className="font-medium text-sm mb-2">メンバーを手動で追加 (ドラッグ＆ドロップ)</h3>
+                    <div className="mb-2 p-2 border rounded-md h-32 overflow-y-auto bg-gray-50">
+                      <p className="text-xs text-gray-500 text-center">ここに利用可能なメンバーリストを表示 (ドラッグ元)</p>
+                      {sampleMembers.map(member => (
+                        <div key={member.id} className="p-1 my-1 bg-white border rounded cursor-grab">
+                          {member.name} ({member.role})
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-4 border-dashed border-2 border-gray-300 rounded-md h-40 overflow-y-auto bg-gray-50">
+                      <p className="text-xs text-gray-500 text-center">ここにメンバーをドラッグ＆ドロップ (ドロップ先)</p>
+                      {newEvent.partyMembers && newEvent.partyMembers.map(memberId => {
+                        const member = sampleMembers.find(m => m.id === memberId);
+                        return member ? (
+                          <div key={memberId} className="p-1 my-1 bg-green-100 border border-green-300 rounded">
+                            {member.name}
                           </div>
-                        );
+                        ) : null;
                       })}
                     </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      （注意：ドラッグ＆ドロップ機能の実装が必要です）
+                    </p>
                   </div>
                 </div>
               </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setShowModal(false)}>
-                        キャンセル
-                      </Button>
-                      <Button onClick={handleAddEvent}>保存</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowModal(false)}>
+                キャンセル
+              </Button>
+              <Button onClick={handleAddEvent}>保存</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* 削除確認モーダル */}
         <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
