@@ -46,5 +46,33 @@
       { "slot": "ANY", "memberId": 6 },
       { "slot": "ANY", "memberId": 7 }
     ]
+  },
+  {
+    "id": "raid_team_alpha",
+    "name": "レイドチームα",
+    "members": [
+      { "memberId": 3, "role": "Tank" },
+      { "memberId": 5, "role": "Healer" },
+      { "memberId": 4, "role": "DPS" }
+    ]
+  },
+  {
+    "id": "casual_friday_group",
+    "name": "カジュアル金曜グループ",
+    "members": [
+      { "memberId": 1, "role": "DPS" },
+      { "memberId": 2, "role": "DPS" }
+    ]
+  },
+  {
+    "id": "static_prog_team",
+    "name": "固定攻略チーム",
+    "members": [
+      { "memberId": 3, "role": "Paladin" },
+      { "memberId": 4, "role": "White Mage" },
+      { "memberId": 5, "role": "Black Mage" },
+      { "memberId": 1, "role": "Ninja" },
+      { "memberId": 2, "role": "Bard" }
+    ]
   }
 ]
