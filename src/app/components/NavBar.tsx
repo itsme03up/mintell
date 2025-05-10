@@ -30,7 +30,7 @@ const navLinks = [
 
 export default function NavBar() {
   return (
-    <header className="sticky top-0 z-50 flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white dark:bg-background dark:text-white text-sm py-4 dark:border-gray-600 border-b border-gray-600">
+    <header className="sticky top-0 z-50 flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-black text-white dark:bg-black dark:text-gray-400 text-sm py-4 dark:border-gray-600 border-b border-gray-600">
       <nav className="max-w-full w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between" aria-label="Global">
         <NavigationMenu>
           <NavigationMenuList>
