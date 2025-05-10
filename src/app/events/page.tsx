@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import characters from "@/data/characters.json";
-import partiesData from "@/data/parties.json";
+import partiesData from "../../data/partybuilder.json";
 
 // イベント型定義
 interface Event {
