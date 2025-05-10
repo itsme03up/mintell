@@ -14,43 +14,65 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 import TokenCalculatorPage from './token-calculator';
-import { GearKey, GearStatus } from '@/lib/types';
+import { GearKey } from '@/lib/types';
 import { calcNeededTiers } from '@/lib/calcEligibleLayer';
 import charactersData from '@/data/characters.json';
 import initialGearStatus from '@/data/gearStatus.json';
 
-// Enhanced type with optIn
-interface EnhancedGearStatus extends GearStatus {
+// Gear state can be 'raid' | 'token' | 'none'
+type GearState = 'raid' | 'token' | 'none';
+
+// Enhanced type with optIn and GearState
+interface EnhancedGearStatus {
+  id: number;
+  fullName: string;
   optIn: boolean;
+  gear: Record<GearKey, GearState>;
 }
 
-// Merge character and gear data
+// Merge character and initial gear data
 function mergeData(): EnhancedGearStatus[] {
   const gearMap = new Map(initialGearStatus.map(g => [g.id, g]));
   return charactersData.map(c => {
-    const gearRec = gearMap.get(c.id);
+    const rec = gearMap.get(c.id);
+    // Initialize all parts to 'none' or from rec
+    const baseGear: Record<GearKey, GearState> = (rec?.gear
+      ? Object.fromEntries(
+          Object.entries(rec.gear).map(([k, v]) => [k, v ? 'raid' : 'none'])
+        )
+      : {}) as Record<GearKey, GearState>;
+    // Ensure all keys exist
+    const allKeys = Object.keys(
+      (rec?.gear as object) || {}
+    ) as GearKey[];
+    allKeys.forEach(k => {
+      if (!baseGear[k]) baseGear[k] = 'none';
+    });
     return {
       id: c.id,
       fullName: c.fullName,
-      optIn: gearRec?.optIn ?? false,
-      gear: gearRec?.gear ?? {
-        weapon: false, head: false, body: false, hands: false,
-        legs: false, feet: false, ear: false, neck: false,
-        wrist: false, ring: false,
-      },
+      optIn: rec?.optIn ?? false,
+      gear: baseGear,
     };
   });
 }
 
-// Custom hook to load hidden members
+// Custom hook for hidden members
 function useHiddenMembers() {
   const [hidden, setHidden] = useState<Set<number>>(new Set());
   useEffect(() => {
-    const setH = new Set(
+    const h = new Set(
       charactersData.filter(c => (c as any).isHidden).map(c => c.id)
     );
-    setHidden(setH);
+    setHidden(h);
   }, []);
   return hidden;
 }
@@ -63,9 +85,9 @@ function FilterControls({
   onToggleOptInOnly,
 }: {
   showHidden: boolean;
-  onToggleHidden: (val: boolean) => void;
+  onToggleHidden: (v: boolean) => void;
   showOptInOnly: boolean;
-  onToggleOptInOnly: (val: boolean) => void;
+  onToggleOptInOnly: (v: boolean) => void;
 }) {
   return (
     <div className="flex items-center space-x-6">
@@ -89,21 +111,25 @@ function FilterControls({
   );
 }
 
-// Memoized Gear row for performance
+// Memoized GearRow
 const GearRow = React.memo(function GearRow({
   member,
   avatarUrl,
   gearKeys,
-  onGearToggle,
+  onGearChange,
   onOptInToggle,
 }: {
   member: EnhancedGearStatus;
   avatarUrl: string;
   gearKeys: GearKey[];
-  onGearToggle: (id: number, key: GearKey) => void;
+  onGearChange: (id: number, key: GearKey, state: GearState) => void;
   onOptInToggle: (id: number) => void;
 }) {
-  const needed = calcNeededTiers(member.gear);
+  const needed = calcNeededTiers(
+    Object.fromEntries(
+      gearKeys.map(k => [k, member.gear[k] === 'raid'])
+    ) as Record<GearKey, boolean>
+  );
   return (
     <TableRow key={member.id} className={member.optIn ? '' : 'opacity-50'}>
       <TableCell className="pl-4">
@@ -124,10 +150,19 @@ const GearRow = React.memo(function GearRow({
       </TableCell>
       {gearKeys.map(key => (
         <TableCell key={key} className="text-center">
-          <Checkbox
-            checked={member.gear[key]}
-            onCheckedChange={() => onGearToggle(member.id, key)}
-          />
+          <Select
+            value={member.gear[key]}
+            onValueChange={val => onGearChange(member.id, key, val as GearState)}
+          >
+            <SelectTrigger className="w-28">
+              <SelectValue placeholder="状態" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="raid">零式装備持っている</SelectItem>
+              <SelectItem value="token">トークン装備持っている</SelectItem>
+              <SelectItem value="none">持っていない</SelectItem>
+            </SelectContent>
+          </Select>
         </TableCell>
       ))}
       <TableCell>
@@ -175,8 +210,7 @@ export default function GearPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ gear: data }),
         });
-      } catch (e) {
-        console.error(e);
+      } catch {
         alert('保存に失敗しました');
       } finally {
         setIsSaving(false);
@@ -184,12 +218,12 @@ export default function GearPage() {
     }, 1000);
   }, []);
 
-  // Toggle gear
-  const handleGearToggle = (memberId: number, key: GearKey) => {
+  // Handle gear state change
+  const handleGearChange = (memberId: number, key: GearKey, state: GearState) => {
     setGearData(prev => {
       const next = prev.map(m =>
         m.id === memberId
-          ? { ...m, gear: { ...m.gear, [key]: !m.gear[key] } }
+          ? { ...m, gear: { ...m.gear, [key]: state } }
           : m
       );
       scheduleSave(next);
@@ -208,9 +242,10 @@ export default function GearPage() {
     });
   };
 
-  // Filtered members
+  // Filter visible members
   const visible = gearData.filter(
-    m => (showHidden || !hiddenMembers.has(m.id)) && (!showOptInOnly || m.optIn)
+    m => (showHidden || !hiddenMembers.has(m.id)) &&
+         (!showOptInOnly || m.optIn)
   );
   const gearKeys = Object.keys(gearData[0].gear) as GearKey[];
 
@@ -250,7 +285,7 @@ export default function GearPage() {
                   member={member}
                   avatarUrl={avatarUrl}
                   gearKeys={gearKeys}
-                  onGearToggle={handleGearToggle}
+                  onGearChange={handleGearChange}
                   onOptInToggle={handleOptInToggle}
                 />
               );
