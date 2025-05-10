@@ -4,9 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import FullCalendar from "@fullcalendar/react";
-import { EventReceiveArg } from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { EventSourceInput } from "@fullcalendar/core/index.js";
 import {
@@ -59,21 +57,6 @@ interface DateClickInfo {
   allDay: boolean;
 }
 
-interface EventReceiveInfo {
-  draggedEl: HTMLElement;
-  date: Date;
-  allDay: boolean;
-}
-
-// ドラッグ可能なイベントデータ
-const dragEvents = [
-  { title: "極・零式", id: "drag1" },
-  { title: "オフ会", id: "drag2" },
-  { title: "DD", id: "drag3" },
-  { title: "地図", id: "drag4" },
-  { title: "誕生日", id: "drag5" },
-];
-
 // サンプルメンバーデータ
 const sampleMembers = [
   { id: 1, name: "タンク太郎", role: "タンク", avatar: "/avatars/tank1.png" },
@@ -99,12 +82,10 @@ export default function EventsPage() {
   ];
 
   // 状態管理
-  const [, /* events */ ] = useState(dragEvents);
   const [allEvents, setAllEvents] = useState<Event[]>(initialEvents);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [idToDelete, setIdToDelete] = useState<number | null>(null);
-  const [, /* selectedMembers */ ] = useState<number[]>([]);
   const [newEvent, setNewEvent] = useState<Event>({
     title: "",
     start: "",
@@ -119,22 +100,6 @@ export default function EventsPage() {
   // Load party configurations from JSON
   useEffect(() => {
     setPartyConfigurations(partyBuilderData || []);
-  }, []);
-
-  // ドラッグ＆ドロップの設定
-  useEffect(() => {
-    const draggableEl = document.getElementById("draggable-el");
-    if (draggableEl) {
-      new Draggable(draggableEl, {
-        itemSelector: ".fc-event",
-        eventData: function (eventEl) {
-          const title = eventEl.getAttribute("title");
-          const id = new Date().getTime();
-          const color = colorOptions[Math.floor(Math.random() * colorOptions.length)];
-          return { title, id, color, allDay: true };
-        }
-      });
-    }
   }, []);
 
   // イベントの追加処理
@@ -168,40 +133,6 @@ export default function EventsPage() {
         memberId: undefined,
         partyMembers: [],
       });
-    }
-  };
-
-  // イベントが受け取られたときの処理
-  const handleReceive = (eventInfo: EventReceiveInfo) => {
-    const title = eventInfo.draggedEl.getAttribute("title") || "新しいイベント";
-    
-    if (title === "誕生日") {
-      const id = parseInt(eventInfo.draggedEl.getAttribute("id") || Date.now().toString());
-      
-      setAllEvents(prev => {
-        if (prev.length > 0) {
-          return prev.slice(0, -1);
-        }
-        return prev;
-      });
-      
-      setNewEvent({
-        title: title,
-        start: eventInfo.date,
-        allDay: eventInfo.allDay,
-        id: id,
-        isBirthday: true,
-        memberId: undefined,
-        color: colorOptions[Math.floor(Math.random() * colorOptions.length)]
-      });
-      
-      setShowModal(true);
-    }
-  };
-
-  const handleEventReceive = (eventInfo: EventReceiveArg) => {
-    if (eventInfo.event.title === "誕生日") {
-      return;
     }
   };
 
@@ -242,7 +173,7 @@ export default function EventsPage() {
           <div className="col-span-9">
             <Card className="p-4 bg-background shadow-md border border-gray-200">
               <FullCalendar
-                plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
+                plugins={[dayGridPlugin, timeGridPlugin]}
                 headerToolbar={{
                   left: "prev,next today",
                   center: "title",
@@ -257,26 +188,11 @@ export default function EventsPage() {
                 locale="ja"
                 eventClick={handleEventClick}
                 dateClick={handleDateClick}
-                drop={handleReceive}
-                eventReceive={handleEventReceive}
                 height="auto" />
             </Card>
           </div>
 
           <div className="col-span-3">
-            <div id="draggable-el" className="mb-6 w-full border-2 p-2 rounded-md bg-muted/30">
-              <h2 className="font-bold text-lg text-center mb-3">ドラッグできるイベント</h2>
-              {dragEvents.map(event => (
-                <div
-                  className="fc-event border-2 p-2 mb-2 w-full rounded-md text-center bg-white hover:bg-primary/10 cursor-pointer"
-                  title={event.title}
-                  key={event.id}
-                >
-                  {event.title}
-                </div>
-              ))}
-            </div>
-
             <Card className="p-4 bg-background shadow-md border border-gray-200">
               <h2 className="font-bold text-lg mb-4">新規イベント作成</h2>
               <Button variant="default" className="w-full mb-2" onClick={() => setShowModal(true)}>
