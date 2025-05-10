@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import characters from "@/data/characters.json";
 import initialPartiesFromFile from "@/data/partybuilder.json"; // Import the JSON file
 import { DndContext, useSensor, useSensors, closestCenter, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
@@ -31,6 +31,12 @@ export default function PartyBuilderPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [partyName, setPartyName] = useState<string>("");
   const [savedParties, setSavedParties] = useState<SavedParty[]>([]);
+  const isInitialMount = useRef(true);
+  const [hasMounted, setHasMounted] = useState(false); // New state for client-side rendering
+
+  useEffect(() => {
+    setHasMounted(true); // Set to true after component mounts on client
+  }, []);
 
   // Load saved parties from localStorage or partybuilder.json on mount
   useEffect(() => {
@@ -60,8 +66,9 @@ export default function PartyBuilderPage() {
 
   // Save parties to localStorage whenever savedParties changes
   useEffect(() => {
+    if (!hasMounted) return; // Ensure this runs only on client and after initial mount
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedParties));
-  }, [savedParties]);
+  }, [savedParties, hasMounted]);
 
   // DnD-kit センサー
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -125,6 +132,11 @@ export default function PartyBuilderPage() {
     setSlots(initialSlotsState());
     setPartyName("");
   };
+
+  if (!hasMounted) {
+    // Render nothing or a loading indicator on the server and during initial client hydration
+    return null; 
+  }
 
   return (
     <div className="p-6 space-y-6">
