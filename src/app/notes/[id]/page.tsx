@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import ReactMarkdown from "react-markdown";
 
 type NoteDetailProps = {
   params: { id: string };
@@ -110,7 +109,7 @@ export default function NoteDetailPage({ params }: NoteDetailProps) {
       </div>
 
       <div className="prose prose-slate dark:prose-invert max-w-none">
-        <ReactMarkdown>{note.content}</ReactMarkdown>
+      {note.content}
       </div>
     </div>
   );
