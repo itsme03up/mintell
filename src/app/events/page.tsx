@@ -18,8 +18,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Image from "next/image";
 import characters from "@/data/characters.json";
+import partiesData from "@/data/parties.json";
 
 // イベント型定義
 interface Event {
@@ -31,6 +39,7 @@ interface Event {
   isBirthday?: boolean;
   memberId?: number;
   partyMembers?: number[];
+  partyId?: number;
   time?: string;
 }
 
@@ -46,6 +55,12 @@ interface Character {
   color?: string;
 }
 
+interface Party {
+  id: number;
+  name: string;
+  members: number[];
+}
+
 interface EventClickInfo {
   event: { id: string; title: string; start: Date | null; allDay: boolean };
 }
@@ -56,11 +71,11 @@ interface DateClickInfo {
 }
 
 export default function EventsPage() {
-  const [allEvents, setAllEvents] = useState<Event[]>([]); // Initialize with empty array
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [idToDelete, setIdToDelete] = useState<number | null>(null);
-  const [currentEventId, setCurrentEventId] = useState<number | null>(null); // For editing
+  const [currentEventId, setCurrentEventId] = useState<number | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [newEvent, setNewEvent] = useState<Partial<Event>>({
     title: "",
@@ -69,6 +84,7 @@ export default function EventsPage() {
     id: 0,
     time: "",
     partyMembers: [],
+    partyId: undefined,
   });
 
   const initialAvailableMembers: Character[] = characters;
@@ -78,24 +94,34 @@ export default function EventsPage() {
     Character[]
   >([]);
 
+  const [allParties, setAllParties] = useState<Party[]>(partiesData);
+  const [selectedPartyIdInModal, setSelectedPartyIdInModal] = useState<
+    string | undefined
+  >(undefined);
+
   // State for HTML5 Drag and Drop
-  const [draggedCharacter, setDraggedCharacter] = useState<Character | null>(null);
-  const [sourceList, setSourceList] = useState<'available' | 'party' | null>(null);
-  const [dragOverTarget, setDragOverTarget] = useState<'available' | 'party' | null>(null);
+  const [draggedCharacter, setDraggedCharacter] = useState<Character | null>(
+    null
+  );
+  const [sourceList, setSourceList] = useState<"available" | "party" | null>(
+    null
+  );
+  const [dragOverTarget, setDragOverTarget] = useState<
+    "available" | "party" | null
+  >(null);
 
   // Fetch initial events
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch('/api/events');
+        const response = await fetch("/api/events");
         if (!response.ok) {
-          throw new Error('Failed to fetch events');
+          throw new Error("Failed to fetch events");
         }
         const data: Event[] = await response.json();
         setAllEvents(data);
       } catch (error) {
         console.error("Error fetching events:", error);
-        // Optionally, set some error state to display to the user
       }
     };
     fetchEvents();
@@ -104,20 +130,18 @@ export default function EventsPage() {
   // Function to save events to the backend
   const saveEvents = async (updatedEvents: Event[]) => {
     try {
-      const response = await fetch('/api/events', {
-        method: 'POST',
+      const response = await fetch("/api/events", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(updatedEvents),
       });
       if (!response.ok) {
-        throw new Error('Failed to save events');
+        throw new Error("Failed to save events");
       }
-      // Optionally, show a success message
     } catch (error) {
       console.error("Error saving events:", error);
-      // Optionally, show an error message to the user and handle rollback
     }
   };
 
@@ -135,12 +159,28 @@ export default function EventsPage() {
       start = start.split("T")[0];
     }
 
+    let finalPartyMembers: number[];
+    let finalPartyId: number | undefined = newEvent.partyId;
+
+    if (finalPartyId) {
+      const selectedParty = allParties.find((p) => p.id === finalPartyId);
+      if (selectedParty) {
+        finalPartyMembers = selectedParty.members;
+      } else {
+        finalPartyMembers = partyMembersForNewEvent.map((pm) => pm.id);
+        finalPartyId = undefined;
+      }
+    } else {
+      finalPartyMembers = partyMembersForNewEvent.map((pm) => pm.id);
+    }
+
     const eventData: Event = {
       title,
       start,
       allDay: newEvent.allDay || false,
       id: isEditMode && currentEventId ? currentEventId : Date.now(),
-      partyMembers: partyMembersForNewEvent.map((pm) => pm.id),
+      partyMembers: finalPartyMembers,
+      partyId: finalPartyId,
       color: newEvent.color,
       isBirthday: newEvent.isBirthday,
       memberId: newEvent.memberId,
@@ -149,13 +189,15 @@ export default function EventsPage() {
 
     let updatedEvents;
     if (isEditMode) {
-      updatedEvents = allEvents.map((ev) => (ev.id === currentEventId ? eventData : ev));
+      updatedEvents = allEvents.map((ev) =>
+        ev.id === currentEventId ? eventData : ev
+      );
       setAllEvents(updatedEvents);
     } else {
       updatedEvents = [...allEvents, eventData];
       setAllEvents(updatedEvents);
     }
-    saveEvents(updatedEvents); // Save to backend
+    saveEvents(updatedEvents);
 
     setShowModal(false);
     setIsEditMode(false);
@@ -167,9 +209,11 @@ export default function EventsPage() {
       id: 0,
       time: "",
       partyMembers: [],
+      partyId: undefined,
     });
     setPartyMembersForNewEvent([]);
-    setAvailableMembers(initialAvailableMembers); // Reset available members
+    setAvailableMembers(initialAvailableMembers);
+    setSelectedPartyIdInModal(undefined);
   };
 
   const handleEventClick = (info: EventClickInfo) => {
@@ -177,22 +221,61 @@ export default function EventsPage() {
     const eventToEdit = allEvents.find((e) => e.id === clickedEventId);
 
     if (eventToEdit) {
-      setNewEvent({
+      const baseEventState = {
         ...eventToEdit,
-        start: typeof eventToEdit.start === 'string' ? eventToEdit.start : eventToEdit.start.toISOString(),
-        time: eventToEdit.allDay ? "" : (eventToEdit.start && typeof eventToEdit.start === 'string' ? eventToEdit.start.split("T")[1]?.substring(0,5) : new Date(eventToEdit.start).toTimeString().substring(0,5) || ""),
-      });
-      
-      const partyMembers = eventToEdit.partyMembers
-        ? characters.filter((c) => eventToEdit.partyMembers?.includes(c.id))
-        : [];
-      setPartyMembersForNewEvent(partyMembers);
-      setAvailableMembers(
-        initialAvailableMembers.filter(
-          (c) => !eventToEdit.partyMembers?.includes(c.id)
-        )
-      );
-      
+        start:
+          typeof eventToEdit.start === "string"
+            ? eventToEdit.start
+            : eventToEdit.start.toISOString(),
+        time: eventToEdit.allDay
+          ? ""
+          : eventToEdit.start &&
+            typeof eventToEdit.start === "string"
+          ? eventToEdit.start.split("T")[1]?.substring(0, 5)
+          : new Date(eventToEdit.start).toTimeString().substring(0, 5) || "",
+      };
+      setNewEvent(baseEventState);
+
+      if (eventToEdit.partyId) {
+        const party = allParties.find((p) => p.id === eventToEdit.partyId);
+        if (party) {
+          setSelectedPartyIdInModal(party.id.toString());
+          const partyMemberObjects = initialAvailableMembers.filter((c) =>
+            party.members.includes(c.id)
+          );
+          setPartyMembersForNewEvent(partyMemberObjects);
+          setAvailableMembers(
+            initialAvailableMembers.filter(
+              (c) => !party.members.includes(c.id)
+            )
+          );
+        } else {
+          setSelectedPartyIdInModal(undefined);
+          const currentPartyMembers = eventToEdit.partyMembers
+            ? characters.filter((c) =>
+                eventToEdit.partyMembers?.includes(c.id)
+              )
+            : [];
+          setPartyMembersForNewEvent(currentPartyMembers);
+          setAvailableMembers(
+            initialAvailableMembers.filter(
+              (c) => !eventToEdit.partyMembers?.includes(c.id)
+            )
+          );
+        }
+      } else {
+        setSelectedPartyIdInModal(undefined);
+        const currentPartyMembers = eventToEdit.partyMembers
+          ? characters.filter((c) => eventToEdit.partyMembers?.includes(c.id))
+          : [];
+        setPartyMembersForNewEvent(currentPartyMembers);
+        setAvailableMembers(
+          initialAvailableMembers.filter(
+            (c) => !eventToEdit.partyMembers?.includes(c.id)
+          )
+        );
+      }
+
       setCurrentEventId(clickedEventId);
       setIsEditMode(true);
       setShowModal(true);
@@ -206,31 +289,41 @@ export default function EventsPage() {
     if (idToDelete) {
       const updatedEvents = allEvents.filter((e) => e.id !== idToDelete);
       setAllEvents(updatedEvents);
-      saveEvents(updatedEvents); // Save to backend
+      saveEvents(updatedEvents);
     }
     if (isEditMode && currentEventId === idToDelete) {
-        setShowModal(false);
-        setIsEditMode(false);
-        setCurrentEventId(null);
-        setNewEvent({
-            title: "",
-            start: "",
-            allDay: false,
-            id: 0,
-            time: "",
-            partyMembers: [],
-        });
-        setPartyMembersForNewEvent([]);
-        setAvailableMembers(initialAvailableMembers);
+      setShowModal(false);
+      setIsEditMode(false);
+      setCurrentEventId(null);
+      setNewEvent({
+        title: "",
+        start: "",
+        allDay: false,
+        id: 0,
+        time: "",
+        partyMembers: [],
+        partyId: undefined,
+      });
+      setPartyMembersForNewEvent([]);
+      setAvailableMembers(initialAvailableMembers);
+      setSelectedPartyIdInModal(undefined);
     }
     setShowDeleteModal(false);
     setIdToDelete(null);
   };
 
   const handleDateClick = (info: DateClickInfo) => {
-    setNewEvent({ title: "", start: info.dateStr, allDay: info.allDay, time: "", partyMembers: [] });
-    setPartyMembersForNewEvent([]); 
-    setAvailableMembers(initialAvailableMembers); 
+    setNewEvent({
+      title: "",
+      start: info.dateStr,
+      allDay: info.allDay,
+      time: "",
+      partyMembers: [],
+      partyId: undefined,
+    });
+    setPartyMembersForNewEvent([]);
+    setAvailableMembers(initialAvailableMembers);
+    setSelectedPartyIdInModal(undefined);
     setIsEditMode(false);
     setCurrentEventId(null);
     setShowModal(true);
@@ -239,35 +332,38 @@ export default function EventsPage() {
   const handleDragStart = (
     e: React.DragEvent<HTMLDivElement>,
     member: Character,
-    listType: 'available' | 'party'
+    listType: "available" | "party"
   ) => {
     setDraggedCharacter(member);
     setSourceList(listType);
-    e.dataTransfer.setData('application/json', JSON.stringify(member)); // Optional: for inter-app D&D or as fallback
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify(member)
+    );
+    e.dataTransfer.effectAllowed = "move";
   };
 
   const handleDragOver = (
     e: React.DragEvent<HTMLDivElement>,
-    targetListType: 'available' | 'party'
+    targetListType: "available" | "party"
   ) => {
-    e.preventDefault(); // Necessary to allow dropping
+    e.preventDefault();
     if (draggedCharacter && sourceList !== targetListType) {
-        e.dataTransfer.dropEffect = 'move';
-        setDragOverTarget(targetListType);
+      e.dataTransfer.dropEffect = "move";
+      setDragOverTarget(targetListType);
     } else {
-        e.dataTransfer.dropEffect = 'none'; // Disallow drop if same list or no item
-        setDragOverTarget(null);
+      e.dataTransfer.dropEffect = "none";
+      setDragOverTarget(null);
     }
   };
-  
+
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     setDragOverTarget(null);
   };
 
   const handleDrop = (
     e: React.DragEvent<HTMLDivElement>,
-    targetListType: 'available' | 'party'
+    targetListType: "available" | "party"
   ) => {
     e.preventDefault();
     if (!draggedCharacter || !sourceList || sourceList === targetListType) {
@@ -277,12 +373,17 @@ export default function EventsPage() {
       return;
     }
 
-    if (sourceList === 'available' && targetListType === 'party') {
+    if (selectedPartyIdInModal) {
+      setSelectedPartyIdInModal(undefined);
+      setNewEvent((prev) => ({ ...prev, partyId: undefined }));
+    }
+
+    if (sourceList === "available" && targetListType === "party") {
       setPartyMembersForNewEvent((prev) => [...prev, draggedCharacter]);
       setAvailableMembers((prev) =>
         prev.filter((m) => m.id !== draggedCharacter.id)
       );
-    } else if (sourceList === 'party' && targetListType === 'available') {
+    } else if (sourceList === "party" && targetListType === "available") {
       setAvailableMembers((prev) => [...prev, draggedCharacter]);
       setPartyMembersForNewEvent((prev) =>
         prev.filter((m) => m.id !== draggedCharacter.id)
@@ -294,7 +395,6 @@ export default function EventsPage() {
   };
 
   const handleDragEnd = () => {
-    // Cleanup drag state
     setDraggedCharacter(null);
     setSourceList(null);
     setDragOverTarget(null);
@@ -304,6 +404,29 @@ export default function EventsPage() {
     if (currentEventId) {
       setIdToDelete(currentEventId);
       setShowDeleteModal(true);
+    }
+  };
+
+  const handlePartySelectionChange = (partyIdStr: string | undefined) => {
+    if (!partyIdStr || partyIdStr === "custom") {
+      setSelectedPartyIdInModal(undefined);
+      setNewEvent((prev) => ({ ...prev, partyId: undefined }));
+    } else {
+      const partyId = parseInt(partyIdStr, 10);
+      const selectedParty = allParties.find((p) => p.id === partyId);
+      if (selectedParty) {
+        setSelectedPartyIdInModal(partyIdStr);
+        setNewEvent((prev) => ({ ...prev, partyId: partyId }));
+        const partyMemberObjects = initialAvailableMembers.filter((c) =>
+          selectedParty.members.includes(c.id)
+        );
+        setPartyMembersForNewEvent(partyMemberObjects);
+        setAvailableMembers(
+          initialAvailableMembers.filter(
+            (c) => !selectedParty.members.includes(c.id)
+          )
+        );
+      }
     }
   };
 
@@ -353,27 +476,31 @@ export default function EventsPage() {
           onOpenChange={(isOpen) => {
             setShowModal(isOpen);
             if (!isOpen) {
-              setPartyMembersForNewEvent([]); // Reset when closing
-              setAvailableMembers(initialAvailableMembers); // Reset when closing
-              setDraggedCharacter(null); // Reset drag state
+              setPartyMembersForNewEvent([]);
+              setAvailableMembers(initialAvailableMembers);
+              setDraggedCharacter(null);
               setSourceList(null);
               setDragOverTarget(null);
-              setIsEditMode(false); // Reset edit mode
-              setCurrentEventId(null); // Reset current event ID
-              setNewEvent({ // Reset newEvent form
+              setIsEditMode(false);
+              setCurrentEventId(null);
+              setNewEvent({
                 title: "",
                 start: "",
                 allDay: false,
                 id: 0,
                 time: "",
                 partyMembers: [],
+                partyId: undefined,
               });
+              setSelectedPartyIdInModal(undefined);
             }
           }}
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{isEditMode ? "イベント編集" : "新規イベント作成"}</DialogTitle>
+              <DialogTitle>
+                {isEditMode ? "イベント編集" : "新規イベント作成"}
+              </DialogTitle>
               <DialogDescription>
                 {isEditMode
                   ? "イベント詳細を編集してください。"
@@ -441,15 +568,41 @@ export default function EventsPage() {
                 </div>
               )}
               <div>
-                <Label className="block mb-1">メンバー</Label>
+                <Label htmlFor="party-select" className="block mb-1">
+                  パーティー選択
+                </Label>
+                <Select
+                  value={selectedPartyIdInModal}
+                  onValueChange={handlePartySelectionChange}
+                >
+                  <SelectTrigger id="party-select">
+                    <SelectValue placeholder="カスタム / パーティー指定なし" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="custom">
+                      カスタム / パーティー指定なし
+                    </SelectItem>
+                    {allParties.map((party) => (
+                      <SelectItem key={party.id} value={party.id.toString()}>
+                        {party.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="block mb-1 mt-2">メンバー</Label>
                 <div className="grid grid-cols-2 gap-2">
                   {/* Available Members List */}
                   <div
-                    onDragOver={(e) => handleDragOver(e, 'available')}
-                    onDrop={(e) => handleDrop(e, 'available')}
+                    onDragOver={(e) => handleDragOver(e, "available")}
+                    onDrop={(e) => handleDrop(e, "available")}
                     onDragLeave={handleDragLeave}
                     className={`p-2 border rounded h-48 overflow-auto bg-gray-50 ${
-                      dragOverTarget === 'available' ? 'bg-blue-100 border-blue-300' : ''
+                      dragOverTarget === "available"
+                        ? "bg-blue-100 border-blue-300"
+                        : ""
                     }`}
                   >
                     <p className="text-xs text-muted mb-1">
@@ -459,10 +612,12 @@ export default function EventsPage() {
                       <div
                         key={member.id}
                         draggable
-                        onDragStart={(e) => handleDragStart(e, member, 'available')}
+                        onDragStart={(e) =>
+                          handleDragStart(e, member, "available")
+                        }
                         onDragEnd={handleDragEnd}
                         className={`p-1 my-1 bg-white border rounded cursor-move ${
-                          draggedCharacter?.id === member.id ? 'opacity-50' : ''
+                          draggedCharacter?.id === member.id ? "opacity-50" : ""
                         }`}
                       >
                         {member.fullName}
@@ -471,11 +626,13 @@ export default function EventsPage() {
                   </div>
                   {/* Party Members List */}
                   <div
-                    onDragOver={(e) => handleDragOver(e, 'party')}
-                    onDrop={(e) => handleDrop(e, 'party')}
+                    onDragOver={(e) => handleDragOver(e, "party")}
+                    onDrop={(e) => handleDrop(e, "party")}
                     onDragLeave={handleDragLeave}
                     className={`p-2 border-dashed border-2 rounded h-48 overflow-auto bg-gray-50 ${
-                      dragOverTarget === 'party' ? 'bg-green-100 border-green-300' : ''
+                      dragOverTarget === "party"
+                        ? "bg-green-100 border-green-300"
+                        : ""
                     }`}
                   >
                     <p className="text-xs text-muted mb-1">
@@ -485,10 +642,12 @@ export default function EventsPage() {
                       <div
                         key={member.id}
                         draggable
-                        onDragStart={(e) => handleDragStart(e, member, 'party')}
+                        onDragStart={(e) =>
+                          handleDragStart(e, member, "party")
+                        }
                         onDragEnd={handleDragEnd}
                         className={`p-1 my-1 bg-green-100 border rounded cursor-move ${
-                          draggedCharacter?.id === member.id ? 'opacity-50' : ''
+                          draggedCharacter?.id === member.id ? "opacity-50" : ""
                         }`}
                       >
                         {member.fullName}
@@ -507,7 +666,9 @@ export default function EventsPage() {
               >
                 キャンセル
               </Button>
-              <Button onClick={handleAddEvent}>{isEditMode ? "更新" : "保存"}</Button>
+              <Button onClick={handleAddEvent}>
+                {isEditMode ? "更新" : "保存"}
+              </Button>
               {isEditMode && (
                 <Button
                   variant="destructive"
