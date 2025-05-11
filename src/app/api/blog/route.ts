@@ -1,24 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPosts, addPost, BlogPost } from '@/lib/blogData'; // Import from the new module
+import { getAllPosts, addPost, Author } from '@/lib/blogStore';
 
-export async function GET(request: NextRequest) {
-  const posts = getPosts();
-  return NextResponse.json(posts);
+export async function GET() {
+  try {
+    const posts = getAllPosts();
+    return NextResponse.json(posts);
+  } catch (error) {
+    console.error('Error in GET /api/blog:', error);
+    return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
+  }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json();
-    const { title, content, category, imageUrl } = body;
+    const body = await req.json();
 
-    if (!title || !content || !category) {
-      return NextResponse.json({ error: 'Title, content, and category are required' }, { status: 400 });
+    if (!body.title || !body.content || !body.category || !body.author || !body.author.name || !body.author.role) {
+      return NextResponse.json({ error: 'Missing required fields: title, content, category, author name, and author role are required.' }, { status: 400 });
     }
 
-    const newPost = addPost({ title, content, category, imageUrl });
+    const newPostData = {
+      title: body.title,
+      content: body.content,
+      category: body.category,
+      author: body.author as Author,
+      imageUrl: body.imageUrl || '', // Default to empty string if not provided
+    };
+    
+    const newPost = addPost(newPostData);
     return NextResponse.json(newPost, { status: 201 });
-  } catch (error) {
-    console.error('Failed to create post:', error);
-    return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error in POST /api/blog:', error);
+    return NextResponse.json({ error: 'Failed to create post', details: error.message }, { status: 500 });
   }
 }

@@ -6,22 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-
-interface Author {
-  name: string;
-  role: string;
-  imageUrl: string;
-}
-
-interface BlogPost {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  date: string;
-  author: Author;
-  imageUrl: string;
-}
+import type { Author, BlogPost } from '@/lib/blogStore'; // Import types
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -258,32 +243,4 @@ export default function BlogPage() {
       </section>
     </div>
   );
-}
-
-import { NextRequest, NextResponse } from 'next/server';
-let posts: BlogPost[] = []; // 簡易的にメモリ上管理
-
-export async function GET() {
-  return NextResponse.json(posts);
-}
-
-export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const newPost: BlogPost = {
-    id: Date.now().toString(),
-    date: new Date().toISOString(),
-    title: body.title,
-    content: body.content,
-    category: body.category,
-    author: body.author || { name: 'Admin', role: 'Site Administrator', imageUrl: '/default-author.png' },
-    imageUrl: body.imageUrl || '',
-  };
-  posts.push(newPost);
-  return NextResponse.json(newPost, { status: 201 });
-}
-
-export async function DELETE(req: NextRequest) {
-  const id = req.url.split('/').pop();
-  posts = posts.filter(p => p.id !== id);
-  return NextResponse.json({}, { status: 204 });
 }

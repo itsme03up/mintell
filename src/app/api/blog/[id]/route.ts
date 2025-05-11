@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPostById, deletePostById } from '@/lib/blogData';
+    import { getPostById, deletePostById } from '@/lib/blogStore';
 
 interface Params {
   id: string;
@@ -15,17 +15,25 @@ export async function GET(request: NextRequest, context: { params: Params }) {
   return NextResponse.json(post);
 }
 
-export async function DELETE(request: NextRequest, context: { params: Params }) {
-  const { id } = context.params;
-  
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
+
+  if (!id) {
+    return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
+  }
+
   try {
     const deleted = deletePostById(id);
-    if (!deleted) {
-      return NextResponse.json({ error: 'Post not found or already deleted' }, { status: 404 });
+    if (deleted) {
+      return new NextResponse(null, { status: 204 }); // No content
+    } else {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
-    return NextResponse.json({ message: 'Post deleted successfully' }, { status: 200 });
-  } catch (error) {
-    console.error(`Failed to delete post ${id}:`, error);
-    return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 });
+  } catch (error: any) {
+    console.error(`Error in DELETE /api/blog/${id}:`, error);
+    return NextResponse.json({ error: 'Failed to delete post', details: error.message }, { status: 500 });
   }
 }
