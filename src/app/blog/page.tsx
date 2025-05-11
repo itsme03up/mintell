@@ -60,7 +60,7 @@ export default function BlogPage() {
       title: newPostTitle,
       content: newPostContent,
       category: newPostCategory,
-      imageUrl: newPostImageUrl || undefined,
+      imageUrl: newPostImageUrl || undefined, // Uncommented this line
       author: {
         name: newPostAuthorName,
         role: newPostAuthorRole,
