@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import TokenCalculatorPage from './token-calculator';
-import { GearKey, GearStatus } from '@/lib/types';
+import { GearKey } from '@/lib/types';
 import { calcNeededTiers } from '@/lib/calcEligibleLayer';
 import charactersData from '@/data/characters.json';
 import initialGearStatus from '@/data/gearStatus.json';
@@ -53,7 +53,7 @@ function useHiddenMembers() {
   const [hidden, setHidden] = useState<Set<number>>(new Set());
   useEffect(() => {
     const h = new Set(
-      charactersData.filter(c => (c as any).isHidden).map(c => c.id)
+      charactersData.filter(c => (c as { isHidden?: boolean }).isHidden).map(c => c.id)
     );
     setHidden(h);
   }, []);
@@ -68,9 +68,9 @@ function FilterControls({
   onToggleOptInOnly,
 }: {
   showHidden: boolean;
-  onToggleHidden: (v: boolean) => void;
+  onToggleHidden: (v: boolean | string) => void;
   showOptInOnly: boolean;
-  onToggleOptInOnly: (v: boolean) => void;
+  onToggleOptInOnly: (v: boolean | string) => void;
 }) {
   return (
     <div className="flex items-center space-x-6">
