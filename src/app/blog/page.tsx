@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { Author, BlogPost } from '@/lib/blogStore'; // Import types
+import type { BlogPost } from '@/lib/blogStore'; // Import types
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -115,9 +115,13 @@ export default function BlogPage() {
       }
       await fetchPosts();
       alert('記事を削除しました');
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      alert(e.message);
+      if (e instanceof Error) {
+        alert(e.message);
+      } else {
+        alert('削除中に予期せぬエラーが発生しました');
+      }
     }
   };
 
