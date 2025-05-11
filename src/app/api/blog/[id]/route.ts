@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+// src/app/api/blog/[id]/route.ts
+
+import { NextResponse } from 'next/server';
 import { getPostById, deletePostById } from '@/lib/blogStore';
 
-// Dynamic route handler for GET and DELETE operations on a single blog post
 export async function GET(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   const { id } = params;
@@ -15,7 +16,7 @@ export async function GET(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   const { id } = params;
