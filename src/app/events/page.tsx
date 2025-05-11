@@ -25,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Image from "next/image";
 import characters from "@/data/characters.json";
 import partiesData from "../../data/partybuilder.json";
 
@@ -94,7 +93,7 @@ export default function EventsPage() {
     Character[]
   >([]);
 
-  const [allParties, setAllParties] = useState<Party[]>(partiesData);
+  const [allParties] = useState<Party[]>(partiesData);
   const [selectedPartyIdInModal, setSelectedPartyIdInModal] = useState<
     string | undefined
   >(undefined);
@@ -357,7 +356,7 @@ export default function EventsPage() {
     }
   };
 
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = () => {
     setDragOverTarget(null);
   };
 
