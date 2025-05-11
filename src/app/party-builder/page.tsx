@@ -31,7 +31,6 @@ export default function PartyBuilderPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [partyName, setPartyName] = useState<string>("");
   const [savedParties, setSavedParties] = useState<SavedParty[]>([]);
-  const isInitialMount = useRef(true);
   const [hasMounted, setHasMounted] = useState(false); // New state for client-side rendering
 
   useEffect(() => {
