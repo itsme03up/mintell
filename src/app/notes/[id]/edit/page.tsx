@@ -4,11 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import dynamic from "next/dynamic";
-import "easymde/dist/easymde.css"; // Changed from easymde.min.css
-
-// Dynamically import SimpleMDE to avoid SSR issues
-const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
 
 type EditNoteProps = {
   params: { id: string };
@@ -99,17 +94,12 @@ export default function EditNotePage({ params }: EditNoteProps) {
         <div>
           <label className="block text-sm font-medium mb-1">内容</label>
           <div className="min-h-[300px]">
-            {typeof window !== 'undefined' && (
-              <SimpleMDE
-                value={content}
-                onChange={setContent}
-                options={{
-                  spellChecker: false,
-                  placeholder: "ここにマクロや攻略テキストをペーストしてください。コードブロック(```)を使うと書式が保持されます。",
-                  toolbar: ["bold", "italic", "heading", "|", "quote", "code", "|", "preview", "side-by-side"],
-                }}
-              />
-            )}
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="ここにマクロや攻略テキストをペーストしてください。"
+              className="w-full h-full min-h-[300px] p-2 border rounded"
+            />
           </div>
         </div>
         
