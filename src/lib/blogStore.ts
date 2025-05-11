@@ -17,13 +17,7 @@ export interface BlogPost {
 let posts: BlogPost[] = [];
 
 export const getPostById = (id: string): BlogPost | undefined => {
-  console.log(`Attempting to find post with id: ${id}`);
   const post = posts.find(p => p.id === id);
-  if (post) {
-    console.log(`Found post: ${post.title}`);
-  } else {
-    console.log(`Post with id ${id} not found.`);
-  }
   return post;
 };
 
@@ -47,6 +41,9 @@ export const addPost = (postData: Omit<BlogPost, 'id' | 'date'>): BlogPost => {
   posts.push(newPost);
   return newPost;
 };
+
+// createPost alias to match API route usage
+export const createPost = addPost;
 
 export const deletePostById = (id: string): boolean => {
   const initialLength = posts.length;
