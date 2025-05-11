@@ -32,7 +32,12 @@ export default function BlogPage() {
   const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostCategory, setNewPostCategory] = useState('');
+  const [newPostImageUrl, setNewPostImageUrl] = useState('');
+  const [newPostAuthorName, setNewPostAuthorName] = useState('');
+  const [newPostAuthorRole, setNewPostAuthorRole] = useState('');
+  const [newPostAuthorImageUrl, setNewPostAuthorImageUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
 
   // 記事取得
   const fetchPosts = async () => {
@@ -58,12 +63,18 @@ export default function BlogPage() {
   // 新規投稿追加
   const handleAddNewPost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPostTitle || !newPostContent || !newPostCategory) {
-      alert('タイトル・内容・カテゴリを入力してください');
+    if (!newPostTitle || !newPostContent || !newPostCategory || !newPostAuthorName || !newPostAuthorRole) {
+      alert('タイトル・内容・カテゴリ・著者名・著者役職を入力してください');
       return;
     }
     setIsSubmitting(true);
     try {
+      const author: Author = {
+        name: newPostAuthorName,
+        role: newPostAuthorRole,
+        imageUrl: newPostAuthorImageUrl || '/default-author.png',
+      };
+
       const res = await fetch('/api/blog', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,6 +82,8 @@ export default function BlogPage() {
           title: newPostTitle,
           content: newPostContent,
           category: newPostCategory,
+          imageUrl: newPostImageUrl,
+          author: author,
         }),
       });
       if (!res.ok) {
@@ -81,6 +94,10 @@ export default function BlogPage() {
       setNewPostTitle('');
       setNewPostContent('');
       setNewPostCategory('');
+      setNewPostImageUrl('');
+      setNewPostAuthorName('');
+      setNewPostAuthorRole('');
+      setNewPostAuthorImageUrl('');
       await fetchPosts();
       alert('投稿を追加しました');
     } catch (e: any) {
@@ -108,6 +125,13 @@ export default function BlogPage() {
     }
   };
 
+  const toggleExpandPost = (postId: string) => {
+    setExpandedPosts(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
   if (isLoading) {
     return <div className="container mx-auto py-10 text-center">読み込み中...</div>;
   }
@@ -122,7 +146,7 @@ export default function BlogPage() {
         <h2 className="text-4xl font-semibold mb-4">お知らせ</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.map(post => (
-            <Card key={post.id} className="p-6">
+            <Card key={post.id} className="p-6 flex flex-col">
               <time dateTime={post.date} className="text-sm text-gray-500">{new Date(post.date).toLocaleDateString('ja-JP')}</time>
               <div className="mt-2">
                 <span className="inline-block bg-gray-200 px-2 py-1 text-xs rounded">{post.category}</span>
@@ -131,16 +155,26 @@ export default function BlogPage() {
                 <img src={post.imageUrl} alt={post.title} className="mt-4 w-full h-40 object-cover rounded" />
               )}
               <h3 className="mt-4 text-xl font-semibold">{post.title}</h3>
-              <p className="mt-2 text-sm text-gray-700 line-clamp-3">{post.content}</p>
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center">
-                  <img src={post.author.imageUrl} alt={post.author.name} className="w-8 h-8 rounded-full" />
-                  <div className="ml-2">
-                    <p className="text-sm font-medium">{post.author.name}</p>
-                    <p className="text-xs text-gray-500">{post.author.role}</p>
+              <p className={`mt-2 text-sm text-gray-700 ${expandedPosts[post.id] ? '' : 'line-clamp-3'}`}>
+                {post.content}
+              </p>
+              <Button variant="link" onClick={() => toggleExpandPost(post.id)} className="mt-2 self-start px-0">
+                {expandedPosts[post.id] ? '折りたたむ' : '続きを読む'}
+              </Button>
+              <div className="mt-auto pt-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <img src={post.author.imageUrl || '/default-author.png'} alt={post.author.name} className="w-8 h-8 rounded-full object-cover" />
+                    <div className="ml-2">
+                      <p className="text-sm font-medium">{post.author.name}</p>
+                      <p className="text-xs text-gray-500">{post.author.role}</p>
+                    </div>
                   </div>
+                  <button onClick={() => handleDeletePost(post.id)} className="text-red-600 hover:underline">削除</button>
                 </div>
-                <button onClick={() => handleDeletePost(post.id)} className="text-red-600 hover:underline">削除</button>
+                <div className="mt-4 text-sm text-gray-400 border-t pt-2">
+                  コメントセクション (プレースホルダー)
+                </div>
               </div>
             </Card>
           ))}
@@ -167,6 +201,42 @@ export default function BlogPage() {
               value={newPostCategory}
               onChange={e => setNewPostCategory(e.target.value)}
               required
+            />
+          </div>
+          <div>
+            <Label htmlFor="postImageUrl">記事画像URL</Label>
+            <Input
+              id="postImageUrl"
+              value={newPostImageUrl}
+              onChange={e => setNewPostImageUrl(e.target.value)}
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
+          <div>
+            <Label htmlFor="postAuthorName">名前</Label>
+            <Input
+              id="postAuthorName"
+              value={newPostAuthorName}
+              onChange={e => setNewPostAuthorName(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="postAuthorRole">著者役職</Label>
+            <Input
+              id="postAuthorRole"
+              value={newPostAuthorRole}
+              onChange={e => setNewPostAuthorRole(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="postAuthorImageUrl">著者画像URL</Label>
+            <Input
+              id="postAuthorImageUrl"
+              value={newPostAuthorImageUrl}
+              onChange={e => setNewPostAuthorImageUrl(e.target.value)}
+              placeholder="/default-author.png"
             />
           </div>
           <div>
@@ -199,16 +269,14 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  // Add default author and imageUrl if not provided
   const newPost: BlogPost = {
     id: Date.now().toString(),
     date: new Date().toISOString(),
     title: body.title,
     content: body.content,
     category: body.category,
-    author: body.author || { name: 'Admin', role: 'Site Administrator', imageUrl: '/default-author.png' }, // Default author
-    imageUrl: body.imageUrl || '', // Default empty image URL
-    ...body
+    author: body.author || { name: 'Admin', role: 'Site Administrator', imageUrl: '/default-author.png' },
+    imageUrl: body.imageUrl || '',
   };
   posts.push(newPost);
   return NextResponse.json(newPost, { status: 201 });
