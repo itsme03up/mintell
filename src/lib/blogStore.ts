@@ -16,6 +16,17 @@ export interface BlogPost {
 
 let posts: BlogPost[] = [];
 
+export const getPostById = (id: string): BlogPost | undefined => {
+  console.log(`Attempting to find post with id: ${id}`);
+  const post = posts.find(p => p.id === id);
+  if (post) {
+    console.log(`Found post: ${post.title}`);
+  } else {
+    console.log(`Post with id ${id} not found.`);
+  }
+  return post;
+};
+
 export const getAllPosts = (): BlogPost[] => {
   // Return a new array to prevent direct mutation of the store's array from outside,
   // and sort by date descending (newest first)
