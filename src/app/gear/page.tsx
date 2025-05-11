@@ -34,7 +34,18 @@ function mergeData(): EnhancedGearStatus[] {
   return charactersData.map(c => {
     const rec = gearMap.get(c.id);
     // initialize all known keys
-    const baseGear: Record<GearKey, boolean> = {} as any;
+    const baseGear: Record<GearKey, boolean> = {
+      weapon: false,
+      head: false,
+      body: false,
+      hands: false,
+      legs: false,
+      feet: false,
+      ear: false,
+      neck: false,
+      wrist: false,
+      ring: false
+    };
     const keys = Object.keys((rec?.gear as object) || {}) as GearKey[];
     keys.forEach(k => {
       baseGear[k] = rec?.gear[k] ?? false;

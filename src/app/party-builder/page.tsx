@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import characters from "@/data/characters.json";
 import initialPartiesFromFile from "@/data/partybuilder.json"; // Import the JSON file
 import { DndContext, useSensor, useSensors, closestCenter, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
