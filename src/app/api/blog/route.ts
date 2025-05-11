@@ -29,8 +29,12 @@ export async function POST(req: NextRequest) {
     
     const newPost = addPost(newPostData);
     return NextResponse.json(newPost, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) { // Changed from any to unknown
     console.error('Error in POST /api/blog:', error);
-    return NextResponse.json({ error: 'Failed to create post', details: error.message }, { status: 500 });
+    let errorMessage = 'Failed to create post';
+    if (error instanceof Error) { // Added type check
+      errorMessage += `: ${error.message}`;
+    }
+    return NextResponse.json({ error: 'Failed to create post', details: errorMessage }, { status: 500 });
   }
 }

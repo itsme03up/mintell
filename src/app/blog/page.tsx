@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image'; // Import next/image
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,8 +34,12 @@ export default function BlogPage() {
       const data = await res.json();
       setPosts(data);
       setError(null);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) { // Changed from any to unknown
+      if (e instanceof Error) { // Added type check
+        setError(e.message);
+      } else {
+        setError('予期せぬエラーが発生しました');
+      }
       setPosts([]);
     } finally {
       setIsLoading(false);
@@ -48,34 +53,37 @@ export default function BlogPage() {
   // 新規投稿追加
   const handleAddNewPost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPostTitle || !newPostContent || !newPostCategory || !newPostAuthorName || !newPostAuthorRole) {
-      alert('タイトル・内容・カテゴリ・著者名・著者役職を入力してください');
-      return;
-    }
     setIsSubmitting(true);
-    try {
-      const author: Author = {
+    setError(null);
+
+    const newPostData: Omit<BlogPost, 'id' | 'date'> = {
+      title: newPostTitle,
+      content: newPostContent,
+      category: newPostCategory,
+      imageUrl: newPostImageUrl || undefined,
+      author: {
         name: newPostAuthorName,
         role: newPostAuthorRole,
-        imageUrl: newPostAuthorImageUrl || '/default-author.png',
-      };
+        imageUrl: newPostAuthorImageUrl || undefined,
+      },
+    };
 
+    try {
       const res = await fetch('/api/blog', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newPostTitle,
-          content: newPostContent,
-          category: newPostCategory,
-          imageUrl: newPostImageUrl,
-          author: author,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPostData),
       });
+
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || '投稿に失敗しました');
+        // Type the error response data
+        const errorData: { error?: string; details?: string } = await res.json();
+        throw new Error(errorData.details || errorData.error || '新規投稿の作成に失敗しました');
       }
-      // 成功したらフォームクリア＆再取得
+
+      // Clear form
       setNewPostTitle('');
       setNewPostContent('');
       setNewPostCategory('');
@@ -83,11 +91,14 @@ export default function BlogPage() {
       setNewPostAuthorName('');
       setNewPostAuthorRole('');
       setNewPostAuthorImageUrl('');
-      await fetchPosts();
-      alert('投稿を追加しました');
-    } catch (e: any) {
-      console.error(e);
-      alert(e.message);
+
+      await fetchPosts(); // Refresh posts
+    } catch (err: unknown) { // Changed from any to unknown
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('予期せぬエラーが発生しました');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -137,7 +148,15 @@ export default function BlogPage() {
                 <span className="inline-block bg-gray-200 px-2 py-1 text-xs rounded">{post.category}</span>
               </div>
               {post.imageUrl && (
-                <img src={post.imageUrl} alt={post.title} className="mt-4 w-full h-40 object-cover rounded" />
+                <div className="relative mt-4 w-full h-40"> {/* Wrapper for Image */}
+                  <Image
+                    src={post.imageUrl}
+                    alt={post.title}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded"
+                  />
+                </div>
               )}
               <h3 className="mt-4 text-xl font-semibold">{post.title}</h3>
               <p className={`mt-2 text-sm text-gray-700 ${expandedPosts[post.id] ? '' : 'line-clamp-3'}`}>
@@ -149,8 +168,16 @@ export default function BlogPage() {
               <div className="mt-auto pt-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <img src={post.author.imageUrl || '/default-author.png'} alt={post.author.name} className="w-8 h-8 rounded-full object-cover" />
-                    <div className="ml-2">
+                    {post.author.imageUrl && (
+                      <Image
+                        src={post.author.imageUrl}
+                        alt={post.author.name}
+                        width={40}
+                        height={40}
+                        className="rounded-full mr-2"
+                      />
+                    )}
+                    <div>
                       <p className="text-sm font-medium">{post.author.name}</p>
                       <p className="text-xs text-gray-500">{post.author.role}</p>
                     </div>
