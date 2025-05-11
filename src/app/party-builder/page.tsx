@@ -39,29 +39,25 @@ export default function PartyBuilderPage() {
 
   // Load saved parties from localStorage or partybuilder.json on mount
   useEffect(() => {
-    const storedParties = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (storedParties) {
+    let partiesToLoad: SavedParty[] = initialPartiesFromFile as unknown as SavedParty[]; // Default to file data
+    const storedPartiesData = localStorage.getItem(LOCAL_STORAGE_KEY);
+
+    if (storedPartiesData) {
       try {
-        const parsedParties = JSON.parse(storedParties);
+        const parsedParties = JSON.parse(storedPartiesData);
+        // Basic validation: check if it's an array.
+        // More robust validation could be added here to check the structure of each party.
         if (Array.isArray(parsedParties)) {
-          // Validate structure of each party if necessary
-          // For now, assume structure is correct if it's an array
-          setSavedParties(parsedParties);
+          partiesToLoad = parsedParties;
         } else {
-          // Data in localStorage is malformed, use initial data from file
-          console.warn("Party data in localStorage is malformed. Using initial data.");
-          setSavedParties(initialPartiesFromFile as unknown as SavedParty[]);
+          console.warn("Party data in localStorage is malformed (not an array). Using initial data from file.");
         }
       } catch (error) {
-        console.error("Failed to parse parties from localStorage:", error);
-        // Fallback to initial data from file in case of parsing error
-        setSavedParties(initialPartiesFromFile as unknown as SavedParty[]);
+        console.error("Failed to parse parties from localStorage. Using initial data from file.", error);
       }
-    } else {
-      // No parties in localStorage, use initial data from file
-      setSavedParties(initialPartiesFromFile as unknown as SavedParty[]);
     }
-  }, []);
+    setSavedParties(partiesToLoad);
+  }, []); // Empty dependency array: runs once on mount.
 
   // Save parties to localStorage whenever savedParties changes
   useEffect(() => {
