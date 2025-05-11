@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-    import { getPostById, deletePostById } from '@/lib/blogStore';
+import { getPostById, deletePostById } from '@/lib/blogStore';
 
 interface Params {
   id: string;
@@ -32,8 +32,12 @@ export async function DELETE(
     } else {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error in DELETE /api/blog/${id}:`, error);
-    return NextResponse.json({ error: 'Failed to delete post', details: error.message }, { status: 500 });
+    let errorMessage = 'Failed to delete post';
+    if (error instanceof Error) {
+      errorMessage += `: ${error.message}`;
+    }
+    return NextResponse.json({ error: 'Failed to delete post', details: errorMessage }, { status: 500 });
   }
 }
