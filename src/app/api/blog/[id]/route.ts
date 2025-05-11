@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPostById, deletePostById } from '@/lib/blogStore';
 
-interface Params {
-  id: string;
-}
-
-export async function GET(request: NextRequest, context: { params: Params }) {
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
   const { id } = context.params;
   const post = getPostById(id);
 
