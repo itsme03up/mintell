@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
-import "easymde/dist/easymde.css"; // Changed from easymde.min.css
+import "easymde/dist/easymde.min.css"; 
 
 // Dynamically import SimpleMDE to avoid SSR issues
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });

@@ -46,7 +46,9 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
+    "react-simplemde-editor": "^5.2.0",
     "shadcn": "^2.5.0",
+    "simplemde": "^1.11.2",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-children": "^2.1.0"
   },
