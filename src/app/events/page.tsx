@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction"; // Import interactionPlugin
 import { EventSourceInput } from "@fullcalendar/core/index.js";
 import {
   Dialog,
@@ -433,11 +434,10 @@ export default function EventsPage() {
     <>
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold text-primary mb-4">イベント管理</h1>
-        <div className="grid grid-cols-12 gap-4">
           <div className="col-span-9">
             <Card className="p-4">
               <FullCalendar
-                plugins={[dayGridPlugin, timeGridPlugin]}
+                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // Add interactionPlugin
                 headerToolbar={{
                   left: "prev,next today",
                   center: "title",
@@ -703,7 +703,7 @@ export default function EventsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+
     </>
   );
 }
