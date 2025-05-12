@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 // GET /api/members — 現在のメンバー一覧をJSONで返す
-export async function GET(request: Request) {
+export async function GET() {
   const filePath = path.join(process.cwd(), 'src/data/characters.json');
   try {
     const json = await fs.readFile(filePath, 'utf8');
