@@ -1,203 +1,499 @@
-"use client";
+import React from 'react';
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import type { BlogPost } from '@/lib/blogStore';
-
-export default function BlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Form state
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
-  const [content, setContent] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [authorName, setAuthorName] = useState('');
-  const [authorRole, setAuthorRole] = useState('');
-  const [authorImageUrl, setAuthorImageUrl] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-
-  // Fetch posts
-  const fetchPosts = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/blog');
-      if (!res.ok) throw new Error('記事の読み込みに失敗しました');
-      const data: BlogPost[] = await res.json();
-      setPosts(data);
-    } catch (e: unknown) {
-      setPosts([]);
-      setError(e instanceof Error ? e.message : '予期せぬエラーが発生しました');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchPosts(); }, []);
-
-  // Add new post
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title || !category || !content || !authorName || !authorRole) {
-      alert('必須項目をすべて入力してください');
-      return;
-    }
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/blog', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          category,
-          content,
-          imageUrl: imageUrl || undefined,
-          author: {
-            name: authorName,
-            role: authorRole,
-            imageUrl: authorImageUrl || undefined,
-          },
-        }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.details || err.error || '投稿に失敗しました');
-      }
-      // Clear form
-      setTitle('');
-      setCategory('');
-      setContent('');
-      setImageUrl('');
-      setAuthorName('');
-      setAuthorRole('');
-      setAuthorImageUrl('');
-      await fetchPosts();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : '投稿中にエラーが発生しました');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Delete post
-  const handleDelete = async (id: string) => {
-    if (!confirm('本当に削除しますか？')) return;
-    setError(null);
-    try {
-      const res = await fetch(`/api/blog/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.details || err.error || '削除に失敗しました');
-      }
-      await fetchPosts();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : '削除中にエラーが発生しました');
-    }
-  };
-
-  const toggleExpand = (id: string) => {
-    setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  if (isLoading) return <div className="text-center py-10">読み込み中...</div>;
-  if (error) return <div className="text-center py-10 text-red-500">エラー: {error}</div>;
-
+const BlogPage = () => {
   return (
-    <div className="container mx-auto py-12 space-y-12">
-      {/* Post List */}
-      <section>
-        <h2 className="text-4xl font-semibold mb-6">お知らせ一覧</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map(post => (
-            <Card key={post.id} className="flex flex-col p-6">
-              <time dateTime={post.date} className="text-sm text-gray-500">
-                {new Date(post.date).toLocaleDateString('ja-JP')}
-              </time>
-              <div className="mt-2">
-                <span className="inline-block bg-gray-200 px-2 py-1 text-xs rounded">
-                  {post.category}
-                </span>
-              </div>
-              {post.imageUrl && (
-                <div className="relative mt-4 h-40 w-full">
-                  <Image src={post.imageUrl} alt={post.title} layout="fill" objectFit="cover" className="rounded" />
+    <>
+      
+
+      {/* component */}
+      {/* This is an example component */}
+      <section className="flex flex-row flex-wrap mx-auto">
+        {/* Card Component */}
+        <div
+          className="transition-all duration-150 flex w-full px-4 py-6 md:w-1/2 lg:w-1/3"
+        >
+          <div
+            className="flex flex-col items-stretch min-h-full pb-4 mb-6 transition-all duration-150 bg-white rounded-lg shadow-lg hover:shadow-2xl"
+          >
+            <div className="md:flex-shrink-0">
+              <img
+                src="https://www.unfe.org/wp-content/uploads/2019/04/SM-placeholder-1024x512.png"
+                alt="Blog Cover"
+                className="object-fill w-full rounded-lg rounded-b-none md:h-56"
+              />
+            </div>
+            <div className="flex items-center justify-between px-4 py-2 overflow-hidden">
+              <span className="text-xs font-medium text-blue-600 uppercase">
+                Web Programming
+              </span>
+              <div className="flex flex-row items-center">
+                <div
+                  className="text-xs font-medium text-gray-500 flex flex-row items-center mr-2"
+                >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    ></path>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    ></path>
+                  </svg>
+                  <span>1.5k</span>
                 </div>
-              )}
-              <h3 className="mt-4 text-xl font-semibold">{post.title}</h3>
-              <p className={`mt-2 text-sm text-gray-700 ${expanded[post.id] ? '' : 'line-clamp-3'}`}>
-                {post.content}
-              </p>
-              <Button variant="link" onClick={() => toggleExpand(post.id)} className="mt-2 p-0">
-                {expanded[post.id] ? '折りたたむ' : '続きを読む'}
-              </Button>
-              <div className="mt-auto pt-4 flex items-center justify-between">
-                <div className="flex items-center">
-                  {post.author.imageUrl && (
-                    <Image src={post.author.imageUrl} alt={post.author.name} width={40} height={40} className="rounded-full" />
-                  )}
-                  <div className="ml-2">
-                    <p className="text-sm font-medium">{post.author.name}</p>
-                    <p className="text-xs text-gray-500">{post.author.role}</p>
+
+                <div
+                  className="text-xs font-medium text-gray-500 flex flex-row items-center mr-2"
+                >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                    ></path>
+                  </svg>
+                  <span>25</span>
+                </div>
+
+                <div
+                  className="text-xs font-medium text-gray-500 flex flex-row items-center"
+                >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+                    ></path>
+                  </svg>
+                  <span>7</span>
+                </div>
+              </div>
+            </div>
+            <hr className="border-gray-300" />
+            <div className="flex flex-wrap items-center flex-1 px-4 py-1 text-center mx-auto">
+              <a href="#" className="hover:underline">
+                <h2 className="text-2xl font-bold tracking-normal text-gray-800">
+                  Ho to Yawn in 7 Days
+                </h2>
+              </a>
+            </div>
+            <hr className="border-gray-300" />
+            <p
+              className="flex flex-row flex-wrap w-full px-4 py-2 overflow-hidden text-sm text-justify text-gray-700"
+            >
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias, magni
+              fugiat, odit incidunt necessitatibus aut nesciunt exercitationem aliquam
+              id voluptatibus quisquam maiores officia sit amet accusantium aliquid
+              quo obcaecati quasi.
+            </p>
+            <hr className="border-gray-300" />
+            <section className="px-4 py-2 mt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center flex-1">
+                  <img
+                    className="object-cover h-10 rounded-full"
+                    src="https://thumbs.dreamstime.com/b/default-avatar-photo-placeholder-profile-icon-eps-file-easy-to-edit-default-avatar-photo-placeholder-profile-icon-124557887.jpg"
+                    alt="Avatar"
+                  />
+                  <div className="flex flex-col mx-2">
+                    <a href="" className="font-semibold text-gray-700 hover:underline">
+                      Fajrian Aidil Pratama
+                    </a>
+                    <span className="mx-1 text-xs text-gray-600">28 Sep 2020</span>
                   </div>
                 </div>
-                <button onClick={() => handleDelete(post.id)} className="text-red-600 hover:underline">
-                  削除
-                </button>
+                <p className="mt-1 text-xs text-gray-600">9 minutes read</p>
               </div>
-            </Card>
-          ))}
+            </section>
+          </div>
+        </div>
+        {/* Card Component */}
+        <div
+          className="transition-all duration-150 flex w-full px-4 py-6 md:w-1/2 lg:w-1/3"
+        >
+          <div
+            className="flex flex-col items-stretch min-h-full pb-4 mb-6 transition-all duration-150 bg-white rounded-lg shadow-lg hover:shadow-2xl"
+          >
+            <div className="md:flex-shrink-0">
+              <img
+                src="https://www.unfe.org/wp-content/uploads/2019/04/SM-placeholder-1024x512.png"
+                alt="Blog Cover"
+                className="object-fill w-full rounded-lg rounded-b-none md:h-56"
+              />
+            </div>
+            <div className="flex items-center justify-between px-4 py-2 overflow-hidden">
+              <span className="text-xs font-medium text-blue-600 uppercase">
+                Web Programming
+              </span>
+              <div className="flex flex-row items-center">
+                <div
+                  className="text-xs font-medium text-gray-500 flex flex-row items-center mr-2"
+                >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    ></path>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    ></path>
+                  </svg>
+                  <span>1.5k</span>
+                </div>
+
+                <div
+                  className="text-xs font-medium text-gray-500 flex flex-row items-center mr-2"
+                >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                    ></path>
+                  </svg>
+                  <span>25</span>
+                </div>
+
+                <div
+                  className="text-xs font-medium text-gray-500 flex flex-row items-center"
+                >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+                    ></path>
+                  </svg>
+                  <span>7</span>
+                </div>
+              </div>
+            </div>
+            <hr className="border-gray-300" />
+            <div className="flex flex-wrap items-center flex-1 px-4 py-1 text-center mx-auto">
+              <a href="#" className="hover:underline">
+                <h2 className="text-2xl font-bold tracking-normal text-gray-800">
+                  Ho to Yawn in 7 Days
+                </h2>
+              </a>
+            </div>
+            <hr className="border-gray-300" />
+            <p
+              className="flex flex-row flex-wrap w-full px-4 py-2 overflow-hidden text-sm text-justify text-gray-700"
+            >
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias, magni
+              fugiat, odit incidunt necessitatibus aut nesciunt exercitationem aliquam
+              id voluptatibus quisquam maiores officia sit amet accusantium aliquid
+              quo obcaecati quasi.
+            </p>
+            <hr className="border-gray-300" />
+            <section className="px-4 py-2 mt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center flex-1">
+                  <img
+                    className="object-cover h-10 rounded-full"
+                    src="https://thumbs.dreamstime.com/b/default-avatar-photo-placeholder-profile-icon-eps-file-easy-to-edit-default-avatar-photo-placeholder-profile-icon-124557887.jpg"
+                    alt="Avatar"
+                  />
+                  <div className="flex flex-col mx-2">
+                    <a href="" className="font-semibold text-gray-700 hover:underline">
+                      Fajrian Aidil Pratama
+                    </a>
+                    <span className="mx-1 text-xs text-gray-600">28 Sep 2020</span>
+                  </div>
+                </div>
+                <p className="mt-1 text-xs text-gray-600">9 minutes read</p>
+              </div>
+            </section>
+          </div>
+        </div>
+        {/* Card Component */}
+        <div
+          className="transition-all duration-150 flex w-full px-4 py-6 md:w-1/2 lg:w-1/3"
+        >
+          <div
+            className="flex flex-col items-stretch min-h-full pb-4 mb-6 transition-all duration-150 bg-white rounded-lg shadow-lg hover:shadow-2xl"
+          >
+            <div className="md:flex-shrink-0">
+              <img
+                src="https://www.unfe.org/wp-content/uploads/2019/04/SM-placeholder-1024x512.png"
+                alt="Blog Cover"
+                className="object-fill w-full rounded-lg rounded-b-none md:h-56"
+              />
+            </div>
+            <div className="flex items-center justify-between px-4 py-2 overflow-hidden">
+              <span className="text-xs font-medium text-blue-600 uppercase">
+                Web Programming
+              </span>
+              <div className="flex flex-row items-center">
+                <div
+                  className="text-xs font-medium text-gray-500 flex flex-row items-center mr-2"
+                >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    ></path>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    ></path>
+                  </svg>
+                  <span>1.5k</span>
+                </div>
+
+                <div
+                  className="text-xs font-medium text-gray-500 flex flex-row items-center mr-2"
+                >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                    ></path>
+                  </svg>
+                  <span>25</span>
+                </div>
+
+                <div
+                  className="text-xs font-medium text-gray-500 flex flex-row items-center"
+                >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+                    ></path>
+                  </svg>
+                  <span>7</span>
+                </div>
+              </div>
+            </div>
+            <hr className="border-gray-300" />
+            <div className="flex flex-wrap items-center flex-1 px-4 py-1 text-center mx-auto">
+              <a href="#" className="hover:underline">
+                <h2 className="text-2xl font-bold tracking-normal text-gray-800">
+                  Ho to Yawn in 7 Days
+                </h2>
+              </a>
+            </div>
+            <hr className="border-gray-300" />
+            <p
+              className="flex flex-row flex-wrap w-full px-4 py-2 overflow-hidden text-sm text-justify text-gray-700"
+            >
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias, magni
+              fugiat, odit incidunt necessitatibus aut nesciunt exercitationem aliquam
+              id voluptatibus quisquam maiores officia sit amet accusantium aliquid
+              quo obcaecati quasi.
+            </p>
+            <hr className="border-gray-300" />
+            <section className="px-4 py-2 mt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center flex-1">
+                  <img
+                    className="object-cover h-10 rounded-full"
+                    src="https://thumbs.dreamstime.com/b/default-avatar-photo-placeholder-profile-icon-eps-file-easy-to-edit-default-avatar-photo-placeholder-profile-icon-124557887.jpg"
+                    alt="Avatar"
+                  />
+                  <div className="flex flex-col mx-2">
+                    <a href="" className="font-semibold text-gray-700 hover:underline">
+                      Fajrian Aidil Pratama
+                    </a>
+                    <span className="mx-1 text-xs text-gray-600">28 Sep 2020</span>
+                  </div>
+                </div>
+                <p className="mt-1 text-xs text-gray-600">9 minutes read</p>
+              </div>
+            </section>
+          </div>
         </div>
       </section>
+      {/* New Blog Post Form */}
+      <section className="w-full max-w-2xl px-6 py-4 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800 my-8">
+        <h2 className="text-3xl font-semibold text-center text-gray-800 dark:text-white">
+          Update Blog Post
+        </h2>
+        <p className="mt-3 text-center text-gray-600 dark:text-gray-400">
+          Fill in the details to update the blog post.
+        </p>
 
-      {/* Admin Form */}
-      <section>
-        <h2 className="text-3xl font-semibold mb-6">新規投稿作成</h2>
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
-          <div>
-            <Label htmlFor="title">タイトル</Label>
-            <Input id="title" value={title} onChange={e => setTitle(e.target.value)} required />
+        <form className="mt-6">
+          <div className="items-center -mx-2 md:flex">
+            <div className="w-full mx-2">
+              <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
+                Blog Cover Image URL
+              </label>
+              <input
+                className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-opacity-40"
+                type="text"
+                placeholder="https://example.com/image.png"
+              />
+            </div>
           </div>
-          <div>
-            <Label htmlFor="category">カテゴリ</Label>
-            <Input id="category" value={category} onChange={e => setCategory(e.target.value)} required />
+
+          <div className="mt-4">
+            <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
+              Category
+            </label>
+            <input
+              className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-opacity-40"
+              type="text"
+              placeholder="Web Programming"
+            />
           </div>
-          <div>
-            <Label htmlFor="imageUrl">記事画像URL</Label>
-            <Input id="imageUrl" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="任意" />
+
+          <div className="mt-4">
+            <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
+              Title
+            </label>
+            <input
+              className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-opacity-40"
+              type="text"
+              placeholder="How to Yawn in 7 Days"
+            />
           </div>
-          <div>
-            <Label htmlFor="authorName">著者名</Label>
-            <Input id="authorName" value={authorName} onChange={e => setAuthorName(e.target.value)} required />
+
+          <div className="w-full mt-4">
+            <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
+              Content
+            </label>
+            <textarea
+              className="block w-full h-40 px-4 py-2 text-gray-700 bg-white border rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40"
+              placeholder="Lorem ipsum dolor sit amet..."
+            ></textarea>
           </div>
-          <div>
-            <Label htmlFor="authorRole">著者役職</Label>
-            <Input id="authorRole" value={authorRole} onChange={e => setAuthorRole(e.target.value)} required />
+
+          <div className="items-center -mx-2 md:flex mt-4">
+            <div className="w-full mx-2 md:w-1/2">
+              <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
+                Author Name
+              </label>
+              <input
+                className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-opacity-40"
+                type="text"
+                placeholder="John Doe"
+              />
+            </div>
+            <div className="w-full mx-2 mt-4 md:mt-0 md:w-1/2">
+              <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
+                Author Avatar URL
+              </label>
+              <input
+                className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-opacity-40"
+                type="text"
+                placeholder="https://example.com/avatar.jpg"
+              />
+            </div>
           </div>
-          <div>
-            <Label htmlFor="authorImageUrl">著者画像URL</Label>
-            <Input id="authorImageUrl" value={authorImageUrl} onChange={e => setAuthorImageUrl(e.target.value)} placeholder="任意" />
+
+          <div className="items-center -mx-2 md:flex mt-4">
+            <div className="w-full mx-2 md:w-1/2">
+              <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
+                Date
+              </label>
+              <input
+                className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-opacity-40"
+                type="text"
+                placeholder="28 Sep 2020"
+              />
+            </div>
+            <div className="w-full mx-2 mt-4 md:mt-0 md:w-1/2">
+              <label className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-200">
+                Read Time
+              </label>
+              <input
+                className="block w-full px-4 py-2 text-gray-700 bg-white border rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 dark:focus:border-blue-300 focus:outline-none focus:ring focus:ring-opacity-40"
+                type="text"
+                placeholder="9 minutes read"
+              />
+            </div>
           </div>
-          <div>
-            <Label htmlFor="content">内容</Label>
-            <Textarea id="content" rows={6} value={content} onChange={e => setContent(e.target.value)} required />
-          </div>
-          <div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? '投稿中...' : '投稿を追加'}
-            </Button>
+
+          <div className="flex justify-center mt-6">
+            <button
+              type="submit"
+              className="px-4 py-2 text-white transition-colors duration-200 transform bg-blue-600 rounded-md hover:bg-blue-500 focus:outline-none focus:bg-blue-500"
+            >
+              Update Post
+            </button>
           </div>
         </form>
       </section>
-    </div>
+    </>
   );
-}
+};
+
+export default BlogPage;
