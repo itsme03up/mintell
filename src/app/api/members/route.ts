@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient('https://bdmvozylkioolebbgcor.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkbXZvenlsa2lvb2xlYmJnY29yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMTQ3ODUsImV4cCI6MjA2MjY5MDc4NX0.cDK40708Nl9OwQ7BmaMlW2-x3sS6hAD5o2Kfny_04SM');
+import { createClient } from '@/lib/supabase';
 
 // GET /api/members — 現在のメンバー一覧をJSONで返す
 export async function GET() {
   try {
+    const supabase = await createClient();
+
     const { data } = await supabase
       .storage
       .from('mintell')
@@ -33,8 +34,9 @@ export async function POST(request: Request) {
   try {
     const { members } = await request.json();
 
-    const jsonData = JSON.stringify(members, null, 2);
+    const supabase = await createClient();
 
+    const jsonData = JSON.stringify(members, null, 2);
     const { error } = await supabase
       .storage
       .from('mintell')
