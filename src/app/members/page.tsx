@@ -65,6 +65,8 @@ const jobRoles: JobRole[] = [
   { job: "BLM", role: "dps" },
   { job: "SMN", role: "dps" },
   { job: "RDM", role: "dps" },
+  { job: "PCT", role: "dps" },
+  { job: "VPR", role: "dps" },
 ];
 
 // ジョブに基づいて適切な色のクラスを返す関数

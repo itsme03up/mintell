@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import characters from "@/data/characters.json";
 import partiesData from "../../data/partybuilder.json";
-import { createClient } from "@/lib/supabase"; // Supabase client import
+import { supabase } from "@/lib/supabase"; // Supabase client import
 
 // イベント型定義
 interface Event {
@@ -115,7 +115,6 @@ export default function EventsPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const supabase = await createClient();
         const { data, error } = await supabase.from("events").select("*");
         if (error) throw error;
         setAllEvents(data as Event[]);
@@ -169,7 +168,6 @@ export default function EventsPage() {
     };
 
     try {
-      const supabase = await createClient();
       const { data: upserted, error } = await supabase
         .from("events")
         .upsert([eventData], { onConflict: "id" })
@@ -273,7 +271,6 @@ export default function EventsPage() {
   const handleDeleteEvent = async () => {
     if (idToDelete == null) return;
     try {
-      const supabase = await createClient();
       const { error } = await supabase
         .from("events")
         .delete()
