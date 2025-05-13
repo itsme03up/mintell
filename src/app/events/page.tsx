@@ -28,10 +28,6 @@ import {
 } from "@/components/ui/select";
 import characters from "@/data/characters.json";
 import partiesData from "../../data/partybuilder.json";
-import { createClient } from '@/lib/supabase'; // Supabase client import
-
-
-
 
 // イベント型定義
 interface Event {
@@ -114,93 +110,24 @@ export default function EventsPage() {
     "available" | "party" | null
   >(null);
 
-  // Fetch initial events
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const supabase = await createClient();
-        const { data, error } = await supabase.from("events").select("*");
-        if (error) throw error;
-        setAllEvents(data as Event[]);
-      } catch (e) {
-        console.error("Error fetching events:", e);
-      }
-    };
-    fetchEvents();
-  }, []);
-
-  const handleAddEvent = async () => {
+  const handleAddEvent = () => {
     if (!newEvent.title || !newEvent.start) return;
-    let title = newEvent.title;
-    if (newEvent.isBirthday && newEvent.memberId) {
-      const m = characters.find((c) => c.id === newEvent.memberId);
-      if (m) title += `: ${m.fullName}`;
-    }
-    let start = newEvent.start;
-    if (!newEvent.allDay && newEvent.time && typeof start === "string") {
-      start = `${start.split("T")[0]}T${newEvent.time}`;
-    } else if (typeof start === "string") {
-      start = start.split("T")[0];
-    }
 
-    let finalPartyMembers: number[];
-    let finalPartyId: number | undefined = newEvent.partyId;
+    const title = newEvent.title;
+    const startDate = new Date(newEvent.start);
+    const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 2時間後
 
-    if (finalPartyId) {
-      const selectedParty = allParties.find((p) => p.id === finalPartyId);
-      if (selectedParty) {
-        finalPartyMembers = selectedParty.members;
-      } else {
-        finalPartyMembers = partyMembersForNewEvent.map((pm) => pm.id);
-        finalPartyId = undefined;
-      }
-    } else {
-      finalPartyMembers = partyMembersForNewEvent.map((pm) => pm.id);
-    }
+    const formatGCalDate = (date: Date) =>
+      date.toISOString().replace(/[-:.]/g, '').split('.')[0] + 'Z';
 
-    const eventData: Event = {
-      title,
-      start,
-      allDay: newEvent.allDay || false,
-      id: isEditMode && currentEventId ? currentEventId : Date.now(),
-      partyMembers: finalPartyMembers,
-      partyId: finalPartyId,
-      color: newEvent.color,
-      isBirthday: newEvent.isBirthday,
-      memberId: newEvent.memberId,
-    };
+    const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+      title
+    )}&dates=${formatGCalDate(startDate)}/${formatGCalDate(
+      endDate
+    )}&details=${encodeURIComponent("Mintell FC イベントです")}`;
 
-    try {
-      const supabase = await createClient();
-      const { data: upserted, error } = await supabase
-        .from("events")
-        .upsert([eventData], { onConflict: "id" })
-        .select();
-      if (error) throw error;
-      const saved = upserted?.[0] ?? eventData;
-      setAllEvents((prev) =>
-        isEditMode
-          ? prev.map((ev) => (ev.id === saved.id ? saved : ev))
-          : [...prev, saved]
-      );
-      setShowModal(false);
-      setIsEditMode(false);
-      setCurrentEventId(null);
-      setNewEvent({
-        title: "",
-        start: "",
-        allDay: false,
-        id: 0,
-        time: "",
-        partyMembers: [],
-        partyId: undefined,
-      });
-      setPartyMembersForNewEvent([]);
-      setAvailableMembers(initialAvailableMembers);
-      setSelectedPartyIdInModal(undefined);
-    } catch (e) {
-      console.error("Error saving event:", e);
-    }
+    window.open(gcalUrl, '_blank');
+    setShowModal(false);
   };
 
   const handleEventClick = (info: EventClickInfo) => {
@@ -273,37 +200,26 @@ export default function EventsPage() {
   };
   const handleDeleteEvent = async () => {
     if (idToDelete == null) return;
-    try {
-      const supabase = await createClient();
-      const { error } = await supabase
-        .from("events")
-        .delete()
-        .eq("id", idToDelete);
-      if (error) throw error;
-      setAllEvents((prev) => prev.filter((e) => e.id !== idToDelete));
-      if (isEditMode && currentEventId === idToDelete) {
-        setShowModal(false);
-        setIsEditMode(false);
-        setCurrentEventId(null);
-        setNewEvent({
-          title: "",
-          start: "",
-          allDay: false,
-          id: 0,
-          time: "",
-          partyMembers: [],
-          partyId: undefined,
-        });
-        setPartyMembersForNewEvent([]);
-        setAvailableMembers(initialAvailableMembers);
-        setSelectedPartyIdInModal(undefined);
-      }
-    } catch (e) {
-      console.error("Error deleting event:", e);
-    } finally {
-      setShowDeleteModal(false);
-      setIdToDelete(null);
+    setAllEvents((prev) => prev.filter((e) => e.id !== idToDelete));
+    if (isEditMode && currentEventId === idToDelete) {
+      setShowModal(false);
+      setIsEditMode(false);
+      setCurrentEventId(null);
+      setNewEvent({
+        title: "",
+        start: "",
+        allDay: false,
+        id: 0,
+        time: "",
+        partyMembers: [],
+        partyId: undefined,
+      });
+      setPartyMembersForNewEvent([]);
+      setAvailableMembers(initialAvailableMembers);
+      setSelectedPartyIdInModal(undefined);
     }
+    setShowDeleteModal(false);
+    setIdToDelete(null);
   };
 
   const handleDateClick = (info: DateClickInfo) => {
