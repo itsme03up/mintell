@@ -20,11 +20,6 @@ import { calcNeededTiers } from '@/lib/calcEligibleLayer';
 import charactersData from '@/data/characters.json';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Supabase setup
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 // Define the order and full set of gear keys
 const GEAR_KEYS_ORDERED: GearKey[] = [
   'weapon', 'head', 'body', 'hands', 'legs', 'feet', 'ear', 'neck', 'wrist', 'ring'
@@ -175,9 +170,30 @@ const GearRow = React.memo(function GearRow({
 });
 
 export default function GearPage() {
+  const [supabaseClient, setSupabaseClient] = useState<SupabaseClient | null>(null);
+  const [clientInitializationError, setClientInitializationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Initialize client on mount (client-side)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (supabaseUrl && supabaseAnonKey) {
+      try {
+        setSupabaseClient(createClient(supabaseUrl, supabaseAnonKey));
+      } catch (error) {
+        console.error("Error creating Supabase client:", error);
+        setClientInitializationError("Supabaseクライアントの作成に失敗しました。");
+      }
+    } else {
+      console.error("Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY) are not set.");
+      setClientInitializationError("Supabase環境変数が設定されていません。");
+    }
+  }, []); // Empty dependency array ensures this runs once on mount
+
   const hiddenMembers = useHiddenMembers();
   const [gearData, setGearData] = useState<EnhancedGearStatus[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // For data loading, distinct from client init
   const [showHidden, setShowHidden] = useState(false);
   const [showOptInOnly, setShowOptInOnly] = useState(false);
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -185,16 +201,34 @@ export default function GearPage() {
 
   useEffect(() => {
     async function loadData() {
+      if (!supabaseClient) {
+        // Don't attempt to load data if client isn't initialized or failed to initialize.
+        // If there was no client init error, set isLoading to false as there's nothing to load.
+        if (!clientInitializationError) setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
-      const data = await fetchAndMergeData(supabase);
-      setGearData(data);
-      setIsLoading(false);
+      try {
+        const data = await fetchAndMergeData(supabaseClient);
+        setGearData(data);
+      } catch (error) {
+        console.error("Error loading gear data:", error);
+        // Optionally, set an error state here to show in UI
+      } finally {
+        setIsLoading(false);
+      }
     }
     loadData();
-  }, []);
+  }, [supabaseClient, clientInitializationError]); // Depend on supabaseClient and its init error status
 
   // Debounced save to Supabase
   const scheduleSave = useCallback((dataToSave: EnhancedGearStatus[]) => {
+    if (!supabaseClient) {
+      console.error("Supabase client not initialized. Cannot save.");
+      alert('保存クライアントが初期化されていません。');
+      return;
+    }
+
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
     saveTimeout.current = setTimeout(async () => {
       setIsSaving(true);
@@ -205,7 +239,7 @@ export default function GearPage() {
       }));
 
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('gear_status')
           .upsert(recordsToUpsert, { onConflict: 'id' });
         if (error) throw error;
@@ -216,7 +250,7 @@ export default function GearPage() {
         setIsSaving(false);
       }
     }, 1000);
-  }, []);
+  }, [supabaseClient]); // Depend on supabaseClient
 
   // Toggle gear boolean
   const handleGearToggle = (memberId: number, key: GearKey) => {
@@ -238,10 +272,13 @@ export default function GearPage() {
 
   // Filter visible
   const visible = gearData.filter(m => (showHidden || !hiddenMembers.has(m.id)) && (!showOptInOnly || m.optIn));
-  // Use the statically defined GEAR_KEYS_ORDERED for consistency
   const gearKeys = GEAR_KEYS_ORDERED;
 
-  if (isLoading) {
+  if (clientInitializationError) {
+    return <div className="p-6 text-red-500">{clientInitializationError}</div>;
+  }
+
+  if (!supabaseClient || isLoading) { // Show loading if client is not yet set or data is loading
     return <div className="p-6">読み込み中...</div>;
   }
 
