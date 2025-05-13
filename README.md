@@ -106,3 +106,16 @@ mintell/
 * **ESM tailwind**: `tailwind.config.mjs` を使用。PostCSS は `postcss.config.js` のまま。
 
 ---
+💡 メモ＆開発方針
+XIVAPI: src/lib/xivapi.ts 経由で呼び出し、APIキー不要
+
+Lodestoneスクレイピング: src/app/api/freecompany/route.ts でCheerio使用
+
+shadcn/ui: UIコンポーネントは npx shadcn-ui add で順次追加
+
+デザインポリシー: ミンフィリアらしい「優しさ＋洗練」
+
+Supabase Auth: 匿名ハンドル運用前提（本名非表示運用可能）
+
+Discord連携: Webhookで軽量通知
+
