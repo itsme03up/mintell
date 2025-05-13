@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import charactersData from "@/data/characters.json";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import {
@@ -80,21 +79,40 @@ const getJobColorClass = (job: string): string => {
 };
 
 const progressOptions = [
-  "未設定", "新生", "蒼天", "紅蓮", "漆黒", "暁月", "黄金7.0", "黄金7.1","黄金7.2"
+  "未設定", "新生", "蒼天", "紅蓮", "漆黒", "暁月", "黄金7.0", "黄金7.1", "黄金7.2"
 ];
 
-const initialMembers: Member[] = charactersData.map(character => ({
-  ...character,
-  lastLoginDate: character.lastLoginDate === undefined ? null : character.lastLoginDate,
-  isHidden: character.isHidden || false,
-  mainJob: (character as Member).mainJob || "",
-  progress: (character as Member).progress || "",
-}));
-
 export default function MembersPage() {
-  const [memberList, setMemberList] = useState<Member[]>(initialMembers);
+  const [memberList, setMemberList] = useState<Member[]>();
   const [showHidden, setShowHidden] = useState(false);
   const [isSaving, setSaving] = useState(false);
+
+  const loadMembersData = async () => {
+    try {
+      const response = await fetch('/api/members');
+      if (!response.ok) {
+        throw new Error('Failed to fetch members data');
+      }
+      const data = await response.json();
+
+      const initialMembers: Member[] = data?.map((character: Member) => ({
+        ...character,
+        lastLoginDate: character.lastLoginDate === undefined ? null : character.lastLoginDate,
+        isHidden: character.isHidden || false,
+        mainJob: character.mainJob || "",
+        progress: character.progress || "",
+      })) || [];
+
+      setMemberList(initialMembers);
+    } catch (error) {
+      console.error('Error loading member data:', error);
+      alert('メンバー情報の読み込みに失敗しました。');
+    }
+  }
+
+  useEffect(() => {
+    loadMembersData();
+  }, []);
 
   // Function to save member data to the server
   const saveMemberData = async (updatedMembers: Member[]) => {
@@ -124,7 +142,7 @@ export default function MembersPage() {
     fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
     fifteenDaysAgo.setHours(0, 0, 0, 0);
 
-    const updatedMembers = memberList.map(member => {
+    const updatedMembers = memberList?.map(member => {
       let newIsHidden = member.isHidden || false;
       if (!newIsHidden && member.lastLoginDate) {
         const lastLogin = new Date(member.lastLoginDate);
@@ -136,37 +154,49 @@ export default function MembersPage() {
     });
 
     setMemberList(updatedMembers);
-    saveMemberData(updatedMembers);
+
+    if (updatedMembers) {
+      saveMemberData(updatedMembers);
+    }
   };
 
   const handleToggleMemberHidden = (memberId: number, checked: boolean) => {
-    const updatedMembers = memberList.map(member =>
+    const updatedMembers = memberList?.map(member =>
       member.id === memberId ? { ...member, isHidden: checked } : member
     );
-    
+
     setMemberList(updatedMembers);
-    saveMemberData(updatedMembers);
+
+    if (updatedMembers) {
+      saveMemberData(updatedMembers);
+    }
   };
 
   const handleMainJobChange = (memberId: number, newJob: string) => {
-    const updatedMembers = memberList.map(member =>
+    const updatedMembers = memberList?.map(member =>
       member.id === memberId ? { ...member, mainJob: newJob } : member
     );
-    
+
     setMemberList(updatedMembers);
-    saveMemberData(updatedMembers);
+
+    if (updatedMembers) {
+      saveMemberData(updatedMembers);
+    }
   };
 
   const handleProgressChange = (memberId: number, newProgress: string) => {
-    const updatedMembers = memberList.map(member =>
+    const updatedMembers = memberList?.map(member =>
       member.id === memberId ? { ...member, progress: newProgress } : member
     );
-    
+
     setMemberList(updatedMembers);
-    saveMemberData(updatedMembers);
+
+    if (updatedMembers) {
+      saveMemberData(updatedMembers);
+    }
   };
 
-  const visibleMembers = memberList.filter(member => showHidden || !member.isHidden);
+  const visibleMembers = memberList?.filter(member => showHidden || !member.isHidden) || [];
 
   return (
     <div className="space-y-4">
@@ -224,11 +254,11 @@ export default function MembersPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {jobRoles.map(({ job, role }) => {
-                        const colorClass = 
-                          role === 'tank' ? 'text-blue-500' : 
-                          role === 'healer' ? 'text-green-500' : 
-                          'text-red-500';
-                        
+                        const colorClass =
+                          role === 'tank' ? 'text-blue-500' :
+                            role === 'healer' ? 'text-green-500' :
+                              'text-red-500';
+
                         return (
                           <SelectItem key={job} value={job}>
                             <span className={colorClass}>{job}</span>
