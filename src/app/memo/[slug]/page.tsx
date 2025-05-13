@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Card } from "@/components/ui/card"; // Add this import
+import Image from 'next/image';
 import { Button } from "@/components/ui/button"; // Add this import
 
 interface BlogPostPageProps {
@@ -96,10 +96,12 @@ const BlogPostPage = ({ params }: BlogPostPageProps) => { // Remove async
             {post.title}
           </h1>
           <div className="flex items-center mb-6">
-            <img
+            <Image
               className="object-cover h-12 w-12 rounded-full mr-4"
               src={post.authorAvatar}
               alt="Author Avatar"
+              width={48}
+              height={48}
             />
             <div>
               <p className="font-semibold text-gray-700">{post.authorName}</p>
@@ -156,10 +158,12 @@ const BlogPostPage = ({ params }: BlogPostPageProps) => { // Remove async
           <div className="space-y-6">
             {comments.map((comment) => (
               <div key={comment.id} className="flex items-start space-x-4">
-                <img
+                <Image
                   className="object-cover h-10 w-10 rounded-full"
                   src={comment.avatar}
                   alt={`${comment.author}'s avatar`}
+                  width={40}
+                  height={40}
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
