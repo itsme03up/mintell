@@ -21,11 +21,9 @@ import charactersData from '@/data/characters.json';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Supabase setup
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
+  'https://bdmvozylkioolebbgcor.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkbXZvenlsa2lvb2xlYmJnY29yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMTQ3ODUsImV4cCI6MjA2MjY5MDc4NX0.cDK40708Nl9OwQ7BmaMlW2-x3sS6hAD5o2Kfny_04SM'
 );
 
 // Define the order and full set of gear keys
