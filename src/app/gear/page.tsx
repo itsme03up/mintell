@@ -18,7 +18,17 @@ import TokenCalculatorPage from './token-calculator';
 import { GearKey } from '@/lib/types';
 import { calcNeededTiers } from '@/lib/calcEligibleLayer';
 import charactersData from '@/data/characters.json';
-import initialGearStatus from '@/data/gearStatus.json';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
+// Supabase setup
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Define the order and full set of gear keys
+const GEAR_KEYS_ORDERED: GearKey[] = [
+  'weapon', 'head', 'body', 'hands', 'legs', 'feet', 'ear', 'neck', 'wrist', 'ring'
+];
 
 // Enhanced type: track boolean gear possession
 interface EnhancedGearStatus {
@@ -28,28 +38,43 @@ interface EnhancedGearStatus {
   gear: Record<GearKey, boolean>;
 }
 
-// Merge character and gear data into boolean model
-function mergeData(): EnhancedGearStatus[] {
-  const gearMap = new Map(initialGearStatus.map(g => [g.id, g]));
+// Supabase table type
+interface GearStatusSupabaseRow {
+  id: number;
+  optIn: boolean;
+  gear: Record<GearKey, boolean>;
+}
+
+// Merge character and gear data from Supabase
+async function fetchAndMergeData(client: SupabaseClient): Promise<EnhancedGearStatus[]> {
+  const { data: gearStatusData, error } = await client
+    .from('gear_status')
+    .select('id, optIn, gear');
+
+  if (error) {
+    console.error('Error fetching gear status:', error);
+    // Fallback to local charactersData with default gear if Supabase fetch fails
+    // This ensures the app can still display characters, though without saved gear.
+    return charactersData.map(c => ({
+      id: c.id,
+      fullName: c.fullName,
+      optIn: false,
+      gear: GEAR_KEYS_ORDERED.reduce((acc, key) => {
+        acc[key] = false;
+        return acc;
+      }, {} as Record<GearKey, boolean>),
+    }));
+  }
+
+  const gearMap = new Map(gearStatusData?.map(g => [g.id, g as GearStatusSupabaseRow]));
+
   return charactersData.map(c => {
     const rec = gearMap.get(c.id);
-    // initialize all known keys
-    const baseGear: Record<GearKey, boolean> = {
-      weapon: false,
-      head: false,
-      body: false,
-      hands: false,
-      legs: false,
-      feet: false,
-      ear: false,
-      neck: false,
-      wrist: false,
-      ring: false
-    };
-    const keys = Object.keys((rec?.gear as object) || {}) as GearKey[];
-    keys.forEach(k => {
-      baseGear[k] = rec?.gear[k] ?? false;
-    });
+    const baseGear: Record<GearKey, boolean> = GEAR_KEYS_ORDERED.reduce((acc, key) => {
+      acc[key] = rec?.gear?.[key] ?? false;
+      return acc;
+    }, {} as Record<GearKey, boolean>);
+
     return {
       id: c.id,
       fullName: c.fullName,
@@ -151,20 +176,41 @@ const GearRow = React.memo(function GearRow({
 
 export default function GearPage() {
   const hiddenMembers = useHiddenMembers();
-  const [gearData, setGearData] = useState<EnhancedGearStatus[]>(mergeData());
+  const [gearData, setGearData] = useState<EnhancedGearStatus[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showHidden, setShowHidden] = useState(false);
   const [showOptInOnly, setShowOptInOnly] = useState(false);
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Debounced save
-  const scheduleSave = useCallback((data: EnhancedGearStatus[]) => {
+  useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      const data = await fetchAndMergeData(supabase);
+      setGearData(data);
+      setIsLoading(false);
+    }
+    loadData();
+  }, []);
+
+  // Debounced save to Supabase
+  const scheduleSave = useCallback((dataToSave: EnhancedGearStatus[]) => {
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
     saveTimeout.current = setTimeout(async () => {
       setIsSaving(true);
+      const recordsToUpsert = dataToSave.map(member => ({
+        id: member.id,
+        optIn: member.optIn,
+        gear: member.gear,
+      }));
+
       try {
-        await fetch('/api/gear', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gear: data }) });
-      } catch {
+        const { error } = await supabase
+          .from('gear_status')
+          .upsert(recordsToUpsert, { onConflict: 'id' });
+        if (error) throw error;
+      } catch (e) {
+        console.error('Failed to save gear status:', e);
         alert('保存に失敗しました');
       } finally {
         setIsSaving(false);
@@ -192,7 +238,12 @@ export default function GearPage() {
 
   // Filter visible
   const visible = gearData.filter(m => (showHidden || !hiddenMembers.has(m.id)) && (!showOptInOnly || m.optIn));
-  const gearKeys = Object.keys(gearData[0].gear) as GearKey[];
+  // Use the statically defined GEAR_KEYS_ORDERED for consistency
+  const gearKeys = GEAR_KEYS_ORDERED;
+
+  if (isLoading) {
+    return <div className="p-6">読み込み中...</div>;
+  }
 
   return (
     <div className="space-y-6 p-6">
@@ -205,7 +256,7 @@ export default function GearPage() {
               <TableHead>アバター</TableHead>
               <TableHead>名前</TableHead>
               <TableHead className="text-center">参加?</TableHead>
-              {gearKeys.map(key => <TableHead key={key} className="text-center">{key}</TableHead>)}
+              {gearKeys.map(key => <TableHead key={key} className="text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</TableHead>)}
               <TableHead>必要な層</TableHead>
             </TableRow>
           </TableHeader>

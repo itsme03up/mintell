@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { createClient } from '@/lib/supabase';
 
-// GET /api/members — 現在のメンバー一覧をJSONで返す
+
 export async function GET() {
   try {
     const supabase = await createClient();
