@@ -4,7 +4,12 @@ import { useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { Card, Button, Dialog, DialogContent, DialogHeader, DialogFooter, Input, Label, Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui";
+import { Card } from "@/components/ui/card";
+import { Button} from "@/components/ui/button"; 
+import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import characters from "@/data/characters.json";
 import partiesData from "@/data/partybuilder.json";
 
