@@ -127,7 +127,7 @@ export default function EventsPage() {
     fetchEvents();
   }, []);
 
-  // Function to save events to the backend
+  // Function to save events to the backend (used for add/update)
   const saveEvents = async (updatedEvents: Event[]) => {
     try {
       const response = await fetch("/api/events", {
@@ -285,12 +285,28 @@ export default function EventsPage() {
     }
   };
 
-  const handleDeleteEvent = () => {
+  const handleDeleteEvent = async () => {
     if (idToDelete) {
-      const updatedEvents = allEvents.filter((e) => e.id !== idToDelete);
-      setAllEvents(updatedEvents);
-      saveEvents(updatedEvents);
+      try {
+        const response = await fetch(`/api/events?id=${idToDelete}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to delete event");
+        }
+        // If API call is successful, update local state
+        setAllEvents((prevEvents) =>
+          prevEvents.filter((e) => e.id !== idToDelete)
+        );
+      } catch (error) {
+        console.error("Error deleting event:", error);
+        // Optionally, show an error message to the user
+      }
     }
+
+    // Common cleanup logic, regardless of API call success for now
+    // (Ideally, only proceed if API call was successful)
     if (isEditMode && currentEventId === idToDelete) {
       setShowModal(false);
       setIsEditMode(false);
@@ -336,10 +352,7 @@ export default function EventsPage() {
   ) => {
     setDraggedCharacter(member);
     setSourceList(listType);
-    e.dataTransfer.setData(
-      "application/json",
-      JSON.stringify(member)
-    );
+    e.dataTransfer.setData("application/json", JSON.stringify(member));
     e.dataTransfer.effectAllowed = "move";
   };
 
@@ -434,276 +447,268 @@ export default function EventsPage() {
     <>
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold text-primary mb-4">イベント管理</h1>
-          <div className="col-span-9">
-            <Card className="p-4">
-              <FullCalendar
-                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // Add interactionPlugin
-                headerToolbar={{
-                  left: "prev,next today",
-                  center: "title",
-                  right: "dayGridMonth,timeGridWeek,timeGridDay",
-                }}
-                events={allEvents as EventSourceInput}
-                nowIndicator
-                editable
-                selectable
-                selectMirror
-                locale="ja"
-                eventClick={handleEventClick}
-                dateClick={handleDateClick}
-                height="auto"
-              />
-            </Card>
-          </div>
-          <div className="col-span-3">
-            <Card className="p-4">
-              <h2 className="text-lg font-semibold mb-2">新規イベント作成</h2>
-              <Button
-                variant="default"
-                className="w-full"
-                onClick={() => setShowModal(true)}
-              >
-                + イベント作成
-              </Button>
-            </Card>
-          </div>
+        <div className="col-span-9">
+          <Card className="p-4">
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // Add interactionPlugin
+              headerToolbar={{
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              events={allEvents as EventSourceInput}
+              nowIndicator
+              editable
+              selectable
+              selectMirror
+              locale="ja"
+              eventClick={handleEventClick}
+              dateClick={handleDateClick}
+              height="auto"
+            />
+          </Card>
         </div>
+        <div className="col-span-3">
+          <Card className="p-4">
+            <h2 className="text-lg font-semibold mb-2">新規イベント作成</h2>
+            <Button
+              variant="default"
+              className="w-full"
+              onClick={() => setShowModal(true)}
+            >
+              + イベント作成
+            </Button>
+          </Card>
+        </div>
+      </div>
 
-        {/* 作成モーダル */}
-        <Dialog
-          open={showModal}
-          onOpenChange={(isOpen) => {
-            setShowModal(isOpen);
-            if (!isOpen) {
-              setPartyMembersForNewEvent([]);
-              setAvailableMembers(initialAvailableMembers);
-              setDraggedCharacter(null);
-              setSourceList(null);
-              setDragOverTarget(null);
-              setIsEditMode(false);
-              setCurrentEventId(null);
-              setNewEvent({
-                title: "",
-                start: "",
-                allDay: false,
-                id: 0,
-                time: "",
-                partyMembers: [],
-                partyId: undefined,
-              });
-              setSelectedPartyIdInModal(undefined);
-            }
-          }}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {isEditMode ? "イベント編集" : "新規イベント作成"}
-              </DialogTitle>
-              <DialogDescription>
-                {isEditMode
-                  ? "イベント詳細を編集してください。"
-                  : "詳細を入力してください。"}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
+      {/* 作成モーダル */}
+      <Dialog
+        open={showModal}
+        onOpenChange={(isOpen) => {
+          setShowModal(isOpen);
+          if (!isOpen) {
+            setPartyMembersForNewEvent([]);
+            setAvailableMembers(initialAvailableMembers);
+            setDraggedCharacter(null);
+            setSourceList(null);
+            setDragOverTarget(null);
+            setIsEditMode(false);
+            setCurrentEventId(null);
+            setNewEvent({
+              title: "",
+              start: "",
+              allDay: false,
+              id: 0,
+              time: "",
+              partyMembers: [],
+              partyId: undefined,
+            });
+            setSelectedPartyIdInModal(undefined);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {isEditMode ? "イベント編集" : "新規イベント作成"}
+            </DialogTitle>
+            <DialogDescription>
+              {isEditMode
+                ? "イベント詳細を編集してください。"
+                : "詳細を入力してください。"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex space-x-4">
+              <Label htmlFor="event-title" className="w-24">
+                タイトル
+              </Label>
+              <Input
+                id="event-title"
+                placeholder="例: 暗黒PT募集"
+                value={newEvent.title}
+                onChange={(e) =>
+                  setNewEvent({ ...newEvent, title: e.target.value })
+                }
+              />
+            </div>
+            <div className="flex space-x-4">
+              <Label htmlFor="event-date" className="w-24">
+                日付
+              </Label>
+              <Input
+                id="event-date"
+                type="date"
+                value={
+                  typeof newEvent.start === "string"
+                    ? newEvent.start.split("T")[0]
+                    : ""
+                }
+                onChange={(e) =>
+                  setNewEvent({ ...newEvent, start: e.target.value })
+                }
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="allDay"
+                checked={newEvent.allDay}
+                onCheckedChange={(val) =>
+                  setNewEvent({
+                    ...newEvent,
+                    allDay: val as boolean,
+                    time: val ? "" : newEvent.time,
+                  })
+                }
+              />
+              <Label htmlFor="allDay">終日</Label>
+            </div>
+            {!newEvent.allDay && (
               <div className="flex space-x-4">
-                <Label htmlFor="event-title" className="w-24">
-                  タイトル
+                <Label htmlFor="event-time" className="w-24">
+                  時間
                 </Label>
                 <Input
-                  id="event-title"
-                  placeholder="例: 暗黒PT募集"
-                  value={newEvent.title}
+                  id="event-time"
+                  type="time"
+                  value={newEvent.time}
                   onChange={(e) =>
-                    setNewEvent({ ...newEvent, title: e.target.value })
+                    setNewEvent({ ...newEvent, time: e.target.value })
                   }
                 />
               </div>
-              <div className="flex space-x-4">
-                <Label htmlFor="event-date" className="w-24">
-                  日付
-                </Label>
-                <Input
-                  id="event-date"
-                  type="date"
-                  value={
-                    typeof newEvent.start === "string"
-                      ? newEvent.start.split("T")[0]
-                      : ""
-                  }
-                  onChange={(e) =>
-                    setNewEvent({ ...newEvent, start: e.target.value })
-                  }
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="allDay"
-                  checked={newEvent.allDay}
-                  onCheckedChange={(val) =>
-                    setNewEvent({
-                      ...newEvent,
-                      allDay: val as boolean,
-                      time: val ? "" : newEvent.time,
-                    })
-                  }
-                />
-                <Label htmlFor="allDay">終日</Label>
-              </div>
-              {!newEvent.allDay && (
-                <div className="flex space-x-4">
-                  <Label htmlFor="event-time" className="w-24">
-                    時間
-                  </Label>
-                  <Input
-                    id="event-time"
-                    type="time"
-                    value={newEvent.time}
-                    onChange={(e) =>
-                      setNewEvent({ ...newEvent, time: e.target.value })
-                    }
-                  />
-                </div>
-              )}
-              <div>
-                <Label htmlFor="party-select" className="block mb-1">
-                  パーティー選択
-                </Label>
-                <Select
-                  value={selectedPartyIdInModal}
-                  onValueChange={handlePartySelectionChange}
-                >
-                  <SelectTrigger id="party-select">
-                    <SelectValue placeholder="カスタム / パーティー指定なし" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="custom">
-                      カスタム / パーティー指定なし
+            )}
+            <div>
+              <Label htmlFor="party-select" className="block mb-1">
+                パーティー選択
+              </Label>
+              <Select
+                value={selectedPartyIdInModal}
+                onValueChange={handlePartySelectionChange}
+              >
+                <SelectTrigger id="party-select">
+                  <SelectValue placeholder="カスタム / パーティー指定なし" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">
+                    カスタム / パーティー指定なし
+                  </SelectItem>
+                  {allParties.map((party) => (
+                    <SelectItem key={party.id} value={party.id.toString()}>
+                      {party.name}
                     </SelectItem>
-                    {allParties.map((party) => (
-                      <SelectItem key={party.id} value={party.id.toString()}>
-                        {party.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div>
-                <Label className="block mb-1 mt-2">メンバー</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {/* Available Members List */}
-                  <div
-                    onDragOver={(e) => handleDragOver(e, "available")}
-                    onDrop={(e) => handleDrop(e, "available")}
-                    onDragLeave={handleDragLeave}
-                    className={`p-2 border rounded h-48 overflow-auto bg-gray-50 ${
-                      dragOverTarget === "available"
-                        ? "bg-blue-100 border-blue-300"
-                        : ""
-                    }`}
-                  >
-                    <p className="text-xs text-muted mb-1">
-                      利用可能なメンバー
-                    </p>
-                    {availableMembers.map((member) => (
-                      <div
-                        key={member.id}
-                        draggable
-                        onDragStart={(e) =>
-                          handleDragStart(e, member, "available")
-                        }
-                        onDragEnd={handleDragEnd}
-                        className={`p-1 my-1 bg-white border rounded cursor-move ${
-                          draggedCharacter?.id === member.id ? "opacity-50" : ""
-                        }`}
-                      >
-                        {member.fullName}
-                      </div>
-                    ))}
-                  </div>
-                  {/* Party Members List */}
-                  <div
-                    onDragOver={(e) => handleDragOver(e, "party")}
-                    onDrop={(e) => handleDrop(e, "party")}
-                    onDragLeave={handleDragLeave}
-                    className={`p-2 border-dashed border-2 rounded h-48 overflow-auto bg-gray-50 ${
-                      dragOverTarget === "party"
-                        ? "bg-green-100 border-green-300"
-                        : ""
-                    }`}
-                  >
-                    <p className="text-xs text-muted mb-1">
-                      イベント参加メンバー
-                    </p>
-                    {partyMembersForNewEvent.map((member) => (
-                      <div
-                        key={member.id}
-                        draggable
-                        onDragStart={(e) =>
-                          handleDragStart(e, member, "party")
-                        }
-                        onDragEnd={handleDragEnd}
-                        className={`p-1 my-1 bg-green-100 border rounded cursor-move ${
-                          draggedCharacter?.id === member.id ? "opacity-50" : ""
-                        }`}
-                      >
-                        {member.fullName}
-                      </div>
-                    ))}
-                  </div>
+            <div>
+              <Label className="block mb-1 mt-2">メンバー</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {/* Available Members List */}
+                <div
+                  onDragOver={(e) => handleDragOver(e, "available")}
+                  onDrop={(e) => handleDrop(e, "available")}
+                  onDragLeave={handleDragLeave}
+                  className={`p-2 border rounded h-48 overflow-auto bg-gray-50 ${
+                    dragOverTarget === "available"
+                      ? "bg-blue-100 border-blue-300"
+                      : ""
+                  }`}
+                >
+                  <p className="text-xs text-muted mb-1">利用可能なメンバー</p>
+                  {availableMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      draggable
+                      onDragStart={(e) =>
+                        handleDragStart(e, member, "available")
+                      }
+                      onDragEnd={handleDragEnd}
+                      className={`p-1 my-1 bg-white border rounded cursor-move ${
+                        draggedCharacter?.id === member.id ? "opacity-50" : ""
+                      }`}
+                    >
+                      {member.fullName}
+                    </div>
+                  ))}
+                </div>
+                {/* Party Members List */}
+                <div
+                  onDragOver={(e) => handleDragOver(e, "party")}
+                  onDrop={(e) => handleDrop(e, "party")}
+                  onDragLeave={handleDragLeave}
+                  className={`p-2 border-dashed border-2 rounded h-48 overflow-auto bg-gray-50 ${
+                    dragOverTarget === "party"
+                      ? "bg-green-100 border-green-300"
+                      : ""
+                  }`}
+                >
+                  <p className="text-xs text-muted mb-1">
+                    イベント参加メンバー
+                  </p>
+                  {partyMembersForNewEvent.map((member) => (
+                    <div
+                      key={member.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, member, "party")}
+                      onDragEnd={handleDragEnd}
+                      className={`p-1 my-1 bg-green-100 border rounded cursor-move ${
+                        draggedCharacter?.id === member.id ? "opacity-50" : ""
+                      }`}
+                    >
+                      {member.fullName}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-            <DialogFooter>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowModal(false);
+              }}
+            >
+              キャンセル
+            </Button>
+            <Button onClick={handleAddEvent}>
+              {isEditMode ? "更新" : "保存"}
+            </Button>
+            {isEditMode && (
               <Button
-                variant="outline"
-                onClick={() => {
-                  setShowModal(false);
-                }}
+                variant="destructive"
+                onClick={openDeleteModalFromEdit}
+                className="ml-2"
               >
-                キャンセル
-              </Button>
-              <Button onClick={handleAddEvent}>
-                {isEditMode ? "更新" : "保存"}
-              </Button>
-              {isEditMode && (
-                <Button
-                  variant="destructive"
-                  onClick={openDeleteModalFromEdit}
-                  className="ml-2"
-                >
-                  削除
-                </Button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* 削除モーダル */}
-        <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>削除確認</DialogTitle>
-              <DialogDescription>
-                このイベントを削除しますか？
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowDeleteModal(false)}
-              >
-                キャンセル
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteEvent}>
                 削除
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
+      {/* 削除モーダル */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>削除確認</DialogTitle>
+            <DialogDescription>
+              このイベントを削除しますか？
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+              キャンセル
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteEvent}>
+              削除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
