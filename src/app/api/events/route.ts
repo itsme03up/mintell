@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase';
 
 // Initialize Supabase client
 // Ensure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are in your .env.local
@@ -21,7 +21,7 @@ interface Event {
 }
 
 export async function GET() {
-  const { data, error } = await supabase
+  const { data, error } = await (await supabase)
     .from('events')
     .select('*');
 
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     
     // Ensure `id` is the conflict target for upsert
     // This assumes your 'events' table has 'id' as its primary key or a unique constraint
-    const { data, error } = await supabase
+    const { data, error } = await (await supabase)
       .from('events')
       .upsert(events, { onConflict: 'id' });
 
@@ -70,7 +70,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ message: 'Invalid Event ID format' }, { status: 400 });
     }
 
-    const { error } = await supabase
+    const { error } = await (await supabase)
       .from('events')
       .delete()
       .eq('id', eventId);
