@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import characters from "@/data/characters.json";
 import partiesData from "../../data/partybuilder.json";
+import { createClient } from "@/lib/supabase"; // Supabase client import
 
 // イベント型定義
 interface Event {
@@ -114,38 +115,18 @@ export default function EventsPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch("/api/events");
-        if (!response.ok) {
-          throw new Error("Failed to fetch events");
-        }
-        const data: Event[] = await response.json();
-        setAllEvents(data);
-      } catch (error) {
-        console.error("Error fetching events:", error);
+        const supabase = await createClient();
+        const { data, error } = await supabase.from("events").select("*");
+        if (error) throw error;
+        setAllEvents(data as Event[]);
+      } catch (e) {
+        console.error("Error fetching events:", e);
       }
     };
     fetchEvents();
   }, []);
 
-  // Function to save events to the backend (used for add/update)
-  const saveEvents = async (updatedEvents: Event[]) => {
-    try {
-      const response = await fetch("/api/events", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedEvents),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to save events");
-      }
-    } catch (error) {
-      console.error("Error saving events:", error);
-    }
-  };
-
-  const handleAddEvent = () => {
+  const handleAddEvent = async () => {
     if (!newEvent.title || !newEvent.start) return;
     let title = newEvent.title;
     if (newEvent.isBirthday && newEvent.memberId) {
@@ -187,33 +168,37 @@ export default function EventsPage() {
       time: newEvent.time,
     };
 
-    let updatedEvents;
-    if (isEditMode) {
-      updatedEvents = allEvents.map((ev) =>
-        ev.id === currentEventId ? eventData : ev
+    try {
+      const supabase = await createClient();
+      const { data: upserted, error } = await supabase
+        .from("events")
+        .upsert([eventData], { onConflict: "id" })
+        .select();
+      if (error) throw error;
+      const saved = upserted?.[0] ?? eventData;
+      setAllEvents((prev) =>
+        isEditMode
+          ? prev.map((ev) => (ev.id === saved.id ? saved : ev))
+          : [...prev, saved]
       );
-      setAllEvents(updatedEvents);
-    } else {
-      updatedEvents = [...allEvents, eventData];
-      setAllEvents(updatedEvents);
+      setShowModal(false);
+      setIsEditMode(false);
+      setCurrentEventId(null);
+      setNewEvent({
+        title: "",
+        start: "",
+        allDay: false,
+        id: 0,
+        time: "",
+        partyMembers: [],
+        partyId: undefined,
+      });
+      setPartyMembersForNewEvent([]);
+      setAvailableMembers(initialAvailableMembers);
+      setSelectedPartyIdInModal(undefined);
+    } catch (e) {
+      console.error("Error saving event:", e);
     }
-    saveEvents(updatedEvents);
-
-    setShowModal(false);
-    setIsEditMode(false);
-    setCurrentEventId(null);
-    setNewEvent({
-      title: "",
-      start: "",
-      allDay: false,
-      id: 0,
-      time: "",
-      partyMembers: [],
-      partyId: undefined,
-    });
-    setPartyMembersForNewEvent([]);
-    setAvailableMembers(initialAvailableMembers);
-    setSelectedPartyIdInModal(undefined);
   };
 
   const handleEventClick = (info: EventClickInfo) => {
@@ -286,46 +271,38 @@ export default function EventsPage() {
   };
 
   const handleDeleteEvent = async () => {
-    if (idToDelete) {
-      try {
-        const response = await fetch(`/api/events?id=${idToDelete}`, {
-          method: "DELETE",
+    if (idToDelete == null) return;
+    try {
+      const supabase = await createClient();
+      const { error } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", idToDelete);
+      if (error) throw error;
+      setAllEvents((prev) => prev.filter((e) => e.id !== idToDelete));
+      if (isEditMode && currentEventId === idToDelete) {
+        setShowModal(false);
+        setIsEditMode(false);
+        setCurrentEventId(null);
+        setNewEvent({
+          title: "",
+          start: "",
+          allDay: false,
+          id: 0,
+          time: "",
+          partyMembers: [],
+          partyId: undefined,
         });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to delete event");
-        }
-        // If API call is successful, update local state
-        setAllEvents((prevEvents) =>
-          prevEvents.filter((e) => e.id !== idToDelete)
-        );
-      } catch (error) {
-        console.error("Error deleting event:", error);
-        // Optionally, show an error message to the user
+        setPartyMembersForNewEvent([]);
+        setAvailableMembers(initialAvailableMembers);
+        setSelectedPartyIdInModal(undefined);
       }
+    } catch (e) {
+      console.error("Error deleting event:", e);
+    } finally {
+      setShowDeleteModal(false);
+      setIdToDelete(null);
     }
-
-    // Common cleanup logic, regardless of API call success for now
-    // (Ideally, only proceed if API call was successful)
-    if (isEditMode && currentEventId === idToDelete) {
-      setShowModal(false);
-      setIsEditMode(false);
-      setCurrentEventId(null);
-      setNewEvent({
-        title: "",
-        start: "",
-        allDay: false,
-        id: 0,
-        time: "",
-        partyMembers: [],
-        partyId: undefined,
-      });
-      setPartyMembersForNewEvent([]);
-      setAvailableMembers(initialAvailableMembers);
-      setSelectedPartyIdInModal(undefined);
-    }
-    setShowDeleteModal(false);
-    setIdToDelete(null);
   };
 
   const handleDateClick = (info: DateClickInfo) => {
