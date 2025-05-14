@@ -40,6 +40,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "discord.js": "^14.19.3",
     "easymde": "^2.20.0",
     "framer-motion": "^10.16.16",
     "list": "^2.0.19",
