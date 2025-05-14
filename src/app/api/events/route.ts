@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
 
-
 interface Event {
   title: string;
   start: Date | string;
