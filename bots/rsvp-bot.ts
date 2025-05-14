@@ -8,7 +8,7 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageReactions],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
@@ -20,6 +20,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
   if (user.bot) return;
 
   const emoji = reaction.emoji.name;
+  if (!reaction.message.content) return; // Ensure content is not null
   const eventId = extractEventIdFromMessage(reaction.message.content);
   const memberId = await getMemberIdFromDiscord(user.id);
 
