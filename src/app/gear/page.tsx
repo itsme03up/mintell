@@ -18,13 +18,6 @@ import TokenCalculatorPage from './token-calculator';
 import { GearKey } from '@/lib/types';
 import { calcNeededTiers } from '@/lib/calcEligibleLayer';
 import charactersData from '@/data/characters.json';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
-// Supabase setup
-const supabase = createClient(
-  'https://bdmvozylkioolebbgcor.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkbXZvenlsa2lvb2xlYmJnY29yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMTQ3ODUsImV4cCI6MjA2MjY5MDc4NX0.cDK40708Nl9OwQ7BmaMlW2-x3sS6hAD5o2Kfny_04SM'
-);
 
 // Define the order and full set of gear keys
 const GEAR_KEYS_ORDERED: GearKey[] = [
@@ -39,50 +32,43 @@ interface EnhancedGearStatus {
   gear: Record<GearKey, boolean>;
 }
 
-// Supabase table type
-interface GearStatusSupabaseRow {
+interface GearStatusItem {
   id: number;
   optIn: boolean;
   gear: Record<GearKey, boolean>;
 }
 
 // Merge character and gear data from Supabase
-async function fetchAndMergeData(client: SupabaseClient): Promise<EnhancedGearStatus[]> {
-  const { data: gearStatusData, error } = await client
-    .from('gear_status')
-    .select('id, optIn, gear');
+async function fetchAndMergeData(): Promise<EnhancedGearStatus[]> {
+  try {
+    const response = await fetch('/api/gear');
+    if (!response.ok) {
+      throw new Error('Failed to fetch members data');
+    }
+    const data: GearStatusItem[] = await response.json();
 
-  if (error) {
-    console.error('Error fetching gear status:', error);
-    // Fallback to local charactersData with default gear if Supabase fetch fails
-    // This ensures the app can still display characters, though without saved gear.
-    return charactersData.map(c => ({
-      id: c.id,
-      fullName: c.fullName,
-      optIn: false,
-      gear: GEAR_KEYS_ORDERED.reduce((acc, key) => {
-        acc[key] = false;
+    const gearMap = new Map(data?.map(g => [g.id, g as GearStatusItem]));
+
+    return charactersData.map(c => {
+      const rec = gearMap.get(c.id);
+      const baseGear: Record<GearKey, boolean> = GEAR_KEYS_ORDERED.reduce((acc, key) => {
+        acc[key] = rec?.gear?.[key] ?? false;
         return acc;
-      }, {} as Record<GearKey, boolean>),
-    }));
+      }, {} as Record<GearKey, boolean>);
+
+      return {
+        id: c.id,
+        fullName: c.fullName,
+        optIn: rec?.optIn ?? false,
+        gear: baseGear,
+      };
+    });
+  } catch (error) {
+    console.error('Error loading member data:', error);
+    alert('メンバー情報の読み込みに失敗しました。');
   }
 
-  const gearMap = new Map(gearStatusData?.map(g => [g.id, g as GearStatusSupabaseRow]));
-
-  return charactersData.map(c => {
-    const rec = gearMap.get(c.id);
-    const baseGear: Record<GearKey, boolean> = GEAR_KEYS_ORDERED.reduce((acc, key) => {
-      acc[key] = rec?.gear?.[key] ?? false;
-      return acc;
-    }, {} as Record<GearKey, boolean>);
-
-    return {
-      id: c.id,
-      fullName: c.fullName,
-      optIn: rec?.optIn ?? false,
-      gear: baseGear,
-    };
-  });
+  return [];
 }
 
 // Load hidden members hook
@@ -187,7 +173,7 @@ export default function GearPage() {
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
-      const data = await fetchAndMergeData(supabase);
+      const data = await fetchAndMergeData();
       setGearData(data);
       setIsLoading(false);
     }
@@ -195,24 +181,26 @@ export default function GearPage() {
   }, []);
 
   // Debounced save to Supabase
-  const scheduleSave = useCallback((dataToSave: EnhancedGearStatus[]) => {
+  const scheduleSave = useCallback(async (dataToSave: EnhancedGearStatus[]) => {
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
-    saveTimeout.current = setTimeout(async () => {
-      setIsSaving(true);
-      const recordsToUpsert = dataToSave.map(member => ({
-        id: member.id,
-        optIn: member.optIn,
-        gear: member.gear,
-      }));
 
+    saveTimeout.current = setTimeout(async () => {
       try {
-        const { error } = await supabase
-          .from('gear_status')
-          .upsert(recordsToUpsert, { onConflict: 'id' });
-        if (error) throw error;
-      } catch (e) {
-        console.error('Failed to save gear status:', e);
-        alert('保存に失敗しました');
+        setIsSaving(true);
+        const response = await fetch('/api/gear', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ gearStatus: dataToSave }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save data');
+        }
+      } catch (error) {
+        console.error('Error saving gear status data:', error);
+        alert('データの保存に失敗しました。');
       } finally {
         setIsSaving(false);
       }
