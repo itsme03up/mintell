@@ -4,6 +4,14 @@ export interface Author {
   imageUrl: string;
 }
 
+export type BlogArticle = {
+  id?: string;
+  title: string;
+  content: string;
+  author_name: string;
+  created_at?: string;
+}
+
 export interface BlogPost {
   id: string;
   title: string;
