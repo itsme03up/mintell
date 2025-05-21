@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const supabase = createClient();
-  const { data, error } = await (await supabase)
+  const supabase = await createClient();
+  const { data, error } = await supabase
     .from('blog_comments')
     .select('*')
     .eq('post_id', params.id)
@@ -15,9 +15,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const { content, commenter_name } = await req.json();
-  const supabase = createClient();
+  const supabase = await createClient();
 
-  const { data, error } = await (await supabase)
+  const { data, error } = await supabase
     .from('blog_comments')
     .insert([{ post_id: params.id, content, commenter_name }])
     .select();
