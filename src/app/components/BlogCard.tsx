@@ -1,4 +1,4 @@
-import { BlogArticle } from "@/lib/blogData";
+import { BlogArticle } from "@/lib/types";
 
 export default function BlogCard({ post }: { post: BlogArticle }) {
   return (

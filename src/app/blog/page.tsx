@@ -1,7 +1,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase';
 
-import { BlogArticle } from '@/lib/blogData';
+import { BlogArticle } from '@/lib/types';
 
 import BlogCard from '../components/BlogCard';
 

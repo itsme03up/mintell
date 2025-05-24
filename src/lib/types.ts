@@ -5,3 +5,19 @@ export interface GearStatus {
   fullName: string;
   gear: Record<GearKey, boolean>;
 }
+
+export type BlogArticle = {
+  id?: string;
+  title: string;
+  content: string;
+  author_name: string;
+  created_at?: string;
+}
+
+export type MemoArticle = {
+  id?: string;
+  title: string;
+  content: string;
+  author_name: string;
+  created_at?: string;
+}
