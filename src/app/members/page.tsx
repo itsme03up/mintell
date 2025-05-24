@@ -21,20 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface Member {
-  id: number;
-  fullName: string;
-  server: string;
-  dataCenter: string;
-  group: string;
-  metric: number;
-  avatarUrl: string;
-  lastLoginDate: string | null;
-  isHidden?: boolean;
-  mainJob: string;
-  progress: string;
-}
+import { Member } from "@/lib/types";
 
 // ジョブとそのロールの定義
 interface JobRole {

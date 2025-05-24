@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import characters from "@/data/characters.json";
-import initialPartiesFromFile from "@/data/partybuilder.json"; // Import the JSON file
 import { DndContext, useSensor, useSensors, closestCenter, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
 import { PointerSensor } from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
@@ -10,6 +8,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Member } from "@/lib/types";
 import SortableItem from "../components/SortableItem";
 
 // PT スロットキー
@@ -21,48 +20,74 @@ const initialSlotsState = () => SLOT_KEYS.reduce((acc, key) => ({ ...acc, [key]:
 interface SavedParty {
   id: string;
   name: string;
-  slots: Record<SlotKey, number | null>;
+  slots?: Record<SlotKey, number | null>;
+  members?: number[];
 }
-
-const LOCAL_STORAGE_KEY = "partyBuilderSavedParties";
 
 export default function PartyBuilderPage() {
   const [slots, setSlots] = useState<Record<SlotKey, number | null>>(initialSlotsState);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [partyName, setPartyName] = useState<string>("");
-  const [savedParties, setSavedParties] = useState<SavedParty[]>([]);
   const [hasMounted, setHasMounted] = useState(false); // New state for client-side rendering
+  const [savedParties, setSavedParties] = useState<SavedParty[]>([]);
+  const [characters, setCharacters] = useState<Member[]>([]);
 
   useEffect(() => {
     setHasMounted(true); // Set to true after component mounts on client
   }, []);
 
-  // Load saved parties from localStorage or partybuilder.json on mount
-  useEffect(() => {
-    let partiesToLoad: SavedParty[] = initialPartiesFromFile as unknown as SavedParty[]; // Default to file data
-    const storedPartiesData = localStorage.getItem(LOCAL_STORAGE_KEY);
-
-    if (storedPartiesData) {
-      try {
-        const parsedParties = JSON.parse(storedPartiesData);
-        // Basic validation: check if it's an array.
-        // More robust validation could be added here to check the structure of each party.
-        if (Array.isArray(parsedParties)) {
-          partiesToLoad = parsedParties;
-        } else {
-          console.warn("Party data in localStorage is malformed (not an array). Using initial data from file.");
-        }
-      } catch (error) {
-        console.error("Failed to parse parties from localStorage. Using initial data from file.", error);
-      }
+  const initParties = async () => {
+    const response = await fetch('/api/partybuilder');
+    if (!response.ok) {
+      throw new Error('Failed to fetch members data');
     }
-    setSavedParties(partiesToLoad);
+
+    const data = await response.json();
+
+    setSavedParties(data);
+  }
+
+  const initMembers = async () => {
+    try {
+      const response = await fetch('/api/members');
+      if (!response.ok) {
+        throw new Error('Failed to fetch members data');
+      }
+      const membersData: Member[] = await response.json();
+      setCharacters(membersData);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+      alert('メンバーの取得に失敗しました。');
+    }
+  }
+
+  useEffect(() => {
+    initParties();
+    initMembers();
   }, []); // Empty dependency array: runs once on mount.
 
-  // Save parties to localStorage whenever savedParties changes
+  const saveParties = async (savedParties: SavedParty[]) => {
+    try {
+      const response = await fetch('/api/partybuilder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ partybuilder: savedParties }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save data');
+      }
+    } catch (error) {
+      console.error('Error saving party builder data:', error);
+      alert('データの保存に失敗しました。');
+    }
+  }
+
   useEffect(() => {
     if (!hasMounted) return; // Ensure this runs only on client and after initial mount
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedParties));
+    saveParties(savedParties);
   }, [savedParties, hasMounted]);
 
   // DnD-kit センサー
@@ -104,6 +129,7 @@ export default function PartyBuilderPage() {
         id: Date.now().toString(),
         name: partyName.trim(),
         slots: { ...slots },
+        members: [],
       };
       setSavedParties(prev => [...prev, newParty]);
       alert(`PT「${partyName}」を保存しました。`);
@@ -111,7 +137,9 @@ export default function PartyBuilderPage() {
   };
 
   const handleLoadParty = (partyToLoad: SavedParty) => {
-    setSlots({ ...partyToLoad.slots });
+    if (partyToLoad?.slots) {
+      setSlots({ ...partyToLoad.slots });
+    }
     setPartyName(partyToLoad.name);
     alert(`PT「${partyToLoad.name}」を読み込みました。`);
   };
@@ -130,18 +158,18 @@ export default function PartyBuilderPage() {
 
   if (!hasMounted) {
     // Render nothing or a loading indicator on the server and during initial client hydration
-    return null; 
+    return null;
   }
 
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold text-primary">PTビルダー</h1>
-      
+
       {/* Party Name Input and Save/Clear Buttons */}
       <div className="flex items-center gap-4 mb-6">
-        <Input 
-          placeholder="PT名を入力" 
-          value={partyName} 
+        <Input
+          placeholder="PT名を入力"
+          value={partyName}
           onChange={(e) => setPartyName(e.target.value)}
           className="max-w-xs"
         />
@@ -149,9 +177,9 @@ export default function PartyBuilderPage() {
         <Button variant="outline" onClick={handleClearParty}>現在のPTをクリア</Button>
       </div>
 
-      <DndContext 
-        sensors={sensors} 
-        collisionDetection={closestCenter} 
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragCancel={() => setActiveId(null)}
@@ -172,7 +200,7 @@ export default function PartyBuilderPage() {
                   const isTankRole = key === "MT" || key === "ST";
                   const isHealerRole = key === "H1" || key === "H2";
                   const isDpsRole = key === "D1" || key === "D2" || key === "D3" || key === "D4";
-                  
+
                   let roleBgClass = "";
                   if (isTankRole) {
                     roleBgClass = "bg-blue-100 dark:bg-blue-900";
@@ -183,12 +211,12 @@ export default function PartyBuilderPage() {
                   }
 
                   return (
-                    <TableRow 
+                    <TableRow
                       key={key}
                     >
                       <TableCell className={`font-medium ${roleBgClass}`}>{key}</TableCell>
                       <TableCell className={roleBgClass}>
-                        <SlotBox slotKey={key} assignedId={slots[key]} />
+                        <SlotBox characters={characters} slotKey={key} assignedId={slots[key]} />
                       </TableCell>
                     </TableRow>
                   );
@@ -257,16 +285,15 @@ export default function PartyBuilderPage() {
 }
 
 // ドロップ可能なスロットコンポーネント
-function SlotBox({ slotKey, assignedId }: { slotKey: SlotKey; assignedId: number | null }) {
+function SlotBox({ characters, slotKey, assignedId }: { characters: Member[]; slotKey: SlotKey; assignedId: number | null }) {
   const { setNodeRef, isOver } = useDroppable({ id: `slot-${slotKey}` });
   const member = assignedId !== null ? characters.find(m => m.id === assignedId) : null;
 
   return (
     <div
       ref={setNodeRef}
-      className={`h-10 border border-border rounded flex items-center justify-center transition-colors ${
-        isOver ? 'bg-primary/20' : 'bg-card'
-      }`}
+      className={`h-10 border border-border rounded flex items-center justify-center transition-colors ${isOver ? 'bg-primary/20' : 'bg-card'
+        }`}
     >
       {member ? member.fullName : 'ドロップして配置'}
     </div>

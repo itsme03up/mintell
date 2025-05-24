@@ -21,3 +21,17 @@ export type MemoArticle = {
   author_name: string;
   created_at?: string;
 }
+
+export interface Member {
+  id: number;
+  fullName: string;
+  server: string;
+  dataCenter: string;
+  group: string;
+  metric: number;
+  avatarUrl: string;
+  lastLoginDate: string | null;
+  isHidden?: boolean;
+  mainJob: string;
+  progress: string;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -10,8 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@/components/
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
-import characters from "@/data/characters.json";
-import partiesData from "@/data/partybuilder.json";
+import { Member } from "@/lib/types";
 
 interface Event {
   id: string;
@@ -20,16 +19,55 @@ interface Event {
   partyId?: number;
 }
 
+interface Party {
+  id: string;
+  name: string;
+  members?: number[];
+}
+
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
   const [selectedPartyId, setSelectedPartyId] = useState<string | undefined>(undefined);
-  const [availableMembers, setAvailableMembers] = useState(characters);
-  const [eventMembers, setEventMembers] = useState<typeof characters>([]);
+  const [characters, setCharacters] = useState<Member[]>([]);
+  const [availableMembers, setAvailableMembers] = useState<Member[]>([]);
+  const [eventMembers, setEventMembers] = useState<Member[]>([]);
+  const [parties, setParties] = useState<Party[]>([]);
 
-  const allParties = partiesData;
+  const initParties = async () => {
+    const response = await fetch('/api/partybuilder');
+    if (!response.ok) {
+      throw new Error('Failed to fetch members data');
+    }
+
+    const data = await response.json();
+
+    setParties(data);
+  }
+
+  const initMembers = async () => {
+    try {
+      const response = await fetch('/api/members');
+      if (!response.ok) {
+        throw new Error('Failed to fetch members data');
+      }
+
+      const membersData: Member[] = await response.json();
+
+      setCharacters(membersData);
+      setAvailableMembers(membersData);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+      alert('メンバーの取得に失敗しました。');
+    }
+  }
+
+  useEffect(() => {
+    initParties();
+    initMembers();
+  }, []);
 
   const resetNewEventForm = () => {
     setNewEventTitle("");
@@ -102,10 +140,10 @@ export default function EventsPage() {
   const handlePartySelect = (partyIdStr: string) => {
     setSelectedPartyId(partyIdStr);
 
-    const party = partiesData.find((p) => p.id === parseInt(partyIdStr, 10));
+    const party = parties.find((p) => p.id === partyIdStr);
     if (party) {
-      const membersInParty = characters.filter((c) => party.members.includes(c.id));
-      const remainingAvailable = characters.filter((c) => !party.members.includes(c.id));
+      const membersInParty = characters.filter((c) => party.members?.includes(c.id));
+      const remainingAvailable = characters.filter((c) => !party.members?.includes(c.id));
       setEventMembers(membersInParty);
       setAvailableMembers(remainingAvailable);
     } else {
@@ -165,7 +203,7 @@ export default function EventsPage() {
               <Select value={selectedPartyId} onValueChange={handlePartySelect}>
                 <SelectTrigger><SelectValue placeholder="選択してください" /></SelectTrigger>
                 <SelectContent>
-                  {allParties.map((p) => (
+                  {parties.map((p) => (
                     <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>
                   ))}
                 </SelectContent>

@@ -15,9 +15,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import TokenCalculatorPage from './token-calculator';
-import { GearKey } from '@/lib/types';
+import { GearKey, Member } from '@/lib/types';
 import { calcNeededTiers } from '@/lib/calcEligibleLayer';
-import charactersData from '@/data/characters.json';
 
 // Define the order and full set of gear keys
 const GEAR_KEYS_ORDERED: GearKey[] = [
@@ -38,6 +37,15 @@ interface GearStatusItem {
   gear: Record<GearKey, boolean>;
 }
 
+async function fetchCharactersData(): Promise<Member[]> {
+  const response = await fetch('/api/members');
+  if (!response.ok) {
+    throw new Error('Failed to fetch members data');
+  }
+  const data: Member[] = await response.json();
+  return data;
+}
+
 // Merge character and gear data from Supabase
 async function fetchAndMergeData(): Promise<EnhancedGearStatus[]> {
   try {
@@ -45,20 +53,23 @@ async function fetchAndMergeData(): Promise<EnhancedGearStatus[]> {
     if (!response.ok) {
       throw new Error('Failed to fetch members data');
     }
+
+    const membersData: Member[] = await fetchCharactersData();
+
     const data: GearStatusItem[] = await response.json();
 
     const gearMap = new Map(data?.map(g => [g.id, g as GearStatusItem]));
 
-    return charactersData.map(c => {
-      const rec = gearMap.get(c.id);
+    return membersData.map(member => {
+      const rec = gearMap.get(member.id);
       const baseGear: Record<GearKey, boolean> = GEAR_KEYS_ORDERED.reduce((acc, key) => {
         acc[key] = rec?.gear?.[key] ?? false;
         return acc;
       }, {} as Record<GearKey, boolean>);
 
       return {
-        id: c.id,
-        fullName: c.fullName,
+        id: member.id,
+        fullName: member.fullName,
         optIn: rec?.optIn ?? false,
         gear: baseGear,
       };
@@ -74,11 +85,18 @@ async function fetchAndMergeData(): Promise<EnhancedGearStatus[]> {
 // Load hidden members hook
 function useHiddenMembers() {
   const [hidden, setHidden] = useState<Set<number>>(new Set());
-  useEffect(() => {
+
+  const applyHidden = async () => {
+    const membersData = await fetchCharactersData();
+
     const h = new Set(
-      charactersData.filter(c => (c as { isHidden?: boolean }).isHidden).map(c => c.id)
+      membersData.filter(c => (c as { isHidden?: boolean }).isHidden).map(c => c.id)
     );
     setHidden(h);
+  }
+
+  useEffect(() => {
+    applyHidden();
   }, []);
   return hidden;
 }
@@ -169,12 +187,18 @@ export default function GearPage() {
   const [showOptInOnly, setShowOptInOnly] = useState(false);
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [membersData, setMembersData] = useState<Member[]>([]);
 
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
+
       const data = await fetchAndMergeData();
       setGearData(data);
+
+      const members = await fetchCharactersData();
+      setMembersData(members);
+
       setIsLoading(false);
     }
     loadData();
@@ -251,7 +275,7 @@ export default function GearPage() {
           </TableHeader>
           <TableBody>
             {visible.map(member => {
-              const char = charactersData.find(c => c.id === member.id);
+              const char = membersData.find(c => c.id === member.id);
               const avatarUrl = char?.avatarUrl || '/placeholder-avatar.png';
               return <GearRow key={member.id} member={member} avatarUrl={avatarUrl} gearKeys={gearKeys} onGearToggle={handleGearToggle} onOptInToggle={handleOptInToggle} />;
             })}
