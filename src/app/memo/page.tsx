@@ -122,10 +122,13 @@ async function createMacro(formData: FormData) {
   revalidatePath('/macros');
 }
 
-const MacroPage = async () => {
+export const MacroPage = async () => {
   const supabase = await createClient();
   try {
-    const { data, error } = await supabase
+    const {
+      // data,
+      error,
+    } = await supabase
       .from('macros')
       .select('*')
       .order('created_at', { ascending: false });
@@ -195,7 +198,7 @@ const MacroPage = async () => {
         </section>
 
         {/* 一覧表示 */}
-        <section className="flex flex-wrap justify-center px-4">
+        {/* <section className="flex flex-wrap justify-center px-4">
           {data?.map((macro: Macro) => (
             <MacroCard
               key={macro.id}
@@ -205,7 +208,7 @@ const MacroPage = async () => {
               created_at={macro.created_at}
             />
           ))}
-        </section>
+        </section> */}
       </>
     );
   } catch (error) {
@@ -214,4 +217,4 @@ const MacroPage = async () => {
   }
 };
 
-export default MacroPage;
+export default MemoPage;
