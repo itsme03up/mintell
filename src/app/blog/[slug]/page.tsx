@@ -4,9 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase';
 
 interface BlogPostPageProps {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }>
 }
 
 async function createBlogPostComment(formData: FormData, slug: string) {

@@ -4,9 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase';
 
 interface MemoPostPageProps {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }>
 }
 
 async function createMemoPostComment(formData: FormData, slug: string) {
