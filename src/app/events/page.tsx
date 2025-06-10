@@ -390,27 +390,27 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold">Mintell イベント管理</h1>
+        <h1 className="text-4xl font-semibold text-gray-800 mb-6">Mintell イベント管理</h1>
         {/* Button to open Discord settings dialog removed */}
       </div>
       
-      <Card className="p-4">
+      <Card className="p-6 bg-white shadow-lg rounded-lg">
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           events={events}
           dateClick={handleDateClick}
           eventContent={(eventInfo) => (
-            <div className="flex items-center justify-between w-full">
-              <span className="truncate" title={eventInfo.event.title}>{eventInfo.event.title}</span>
+            <div className="flex items-center justify-between w-full bg-white hover:bg-gray-100 rounded p-2 transition-colors">
+              <span className="truncate font-medium text-gray-700" title={eventInfo.event.title}>{eventInfo.event.title}</span>
               <Button
                 variant="ghost"
                 size="sm"
-                className="ml-2 p-1 h-auto text-xs text-red-500 hover:bg-red-100"
+                className="ml-2 p-1 h-auto text-red-500 hover:bg-red-100 transition-colors"
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent eventClick if we were using it
+                  e.stopPropagation();
                   handleDeleteEvent(eventInfo.event.id);
                 }}
               >
