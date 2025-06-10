@@ -38,7 +38,7 @@ interface Participant {
 
 interface DiscordSettings {
   webhookUrl: string;
-  botToken: string;
+  botToken: string; // Consider security implications if this remains client-side
   channelId?: string;
 }
 
@@ -59,12 +59,12 @@ export default function EventsPage() {
   
   // Discord関連のstate
   const [discordSettings, setDiscordSettings] = useState<DiscordSettings>({
-    webhookUrl: '',
-    botToken: '',
-    channelId: ''
+    webhookUrl: process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL || '',
+    botToken: process.env.NEXT_PUBLIC_DISCORD_BOT_TOKEN || '', // WARNING: Exposing bot token client-side is risky
+    channelId: process.env.NEXT_PUBLIC_DISCORD_CHANNEL_ID || ''
   });
   const [participants, setParticipants] = useState<Map<string, Participant[]>>(new Map());
-  const [showDiscordSettings, setShowDiscordSettings] = useState(false);
+  // const [showDiscordSettings, setShowDiscordSettings] = useState(false); // Removed
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
   // バリデーション関数
@@ -104,28 +104,14 @@ export default function EventsPage() {
   useEffect(() => {
     initParties();
     initMembers();
-    loadDiscordSettings();
+    // loadDiscordSettings(); // Removed: Settings now come from .env
   }, []);
 
-  // Discord設定を読み込み
-  const loadDiscordSettings = () => {
-    const savedSettings = {
-      webhookUrl: localStorage.getItem('discordWebhookUrl') || '',
-      botToken: localStorage.getItem('discordBotToken') || '',
-      channelId: localStorage.getItem('discordChannelId') || ''
-    };
-    setDiscordSettings(savedSettings);
-  };
+  // Discord設定を読み込み // Removed
+  // const loadDiscordSettings = () => { ... };
 
-  // Discord設定を保存
-  const saveDiscordSettings = (settings: DiscordSettings) => {
-    localStorage.setItem('discordWebhookUrl', settings.webhookUrl);
-    localStorage.setItem('discordBotToken', settings.botToken);
-    localStorage.setItem('discordChannelId', settings.channelId || '');
-    setDiscordSettings(settings);
-    // User feedback for successful save
-    alert("Discord設定が保存されました。"); 
-  };
+  // Discord設定を保存 // Removed
+  // const saveDiscordSettings = (settings: DiscordSettings) => { ... };
 
   const resetNewEventForm = () => {
     setNewEventTitle("");
@@ -146,6 +132,17 @@ export default function EventsPage() {
 
   const handleAddEvent = async () => {
     if (!newEventTitle || !newEventDate) return;
+
+    // Check if essential Discord settings are available from .env
+    if (!discordSettings.webhookUrl) {
+      alert("Discord Webhook URLが環境変数に設定されていません。通知は送信できません。");
+      // Optionally, you might want to prevent event creation or proceed without Discord functionality
+    }
+    // Add a similar check for botToken if addDiscordReactions is critical and stays client-side
+    // if (!discordSettings.botToken) {
+    //   alert("Discord Bot Tokenが環境変数に設定されていません。リアクションは追加できません。");
+    // }
+
 
     setIsCreatingEvent(true);
 
@@ -258,7 +255,14 @@ export default function EventsPage() {
 
       const addDiscordReactions = async (messageId: string): Promise<void> => {
         const reactions = ['✅', '❌', '❓'];
+        // Use NEXT_PUBLIC_DISCORD_CHANNEL_ID for targetChannelId if available, otherwise try to extract (though extraction is unreliable)
         const targetChannelId = discordSettings.channelId || extractChannelIdFromWebhook(discordSettings.webhookUrl);
+        
+        if (!discordSettings.botToken) {
+          console.warn('Bot Token is not configured. Skipping adding reactions.');
+          alert('Bot Tokenが設定されていないため、リアクションは追加されません。');
+          return;
+        }
         
         if (!targetChannelId) {
           console.warn('Channel ID not available for adding reactions');
@@ -369,14 +373,7 @@ export default function EventsPage() {
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Mintell イベント管理</h1>
-        <Button 
-          variant="outline" 
-          onClick={() => setShowDiscordSettings(true)}
-          className="flex items-center gap-2"
-        >
-          <span>⚙️</span>
-          Discord設定
-        </Button>
+        {/* Button to open Discord settings dialog removed */}
       </div>
       
       <Card className="p-4">
@@ -487,12 +484,26 @@ export default function EventsPage() {
 
               {/* Discord設定状況 */}
               <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="text-sm font-medium mb-2">Discord通知設定</div>
+                <div className="text-sm font-medium mb-2">Discord通知設定 (環境変数から読込)</div>
                 <div className="text-xs text-gray-600">
-                  {discordSettings.webhookUrl && discordSettings.botToken ? (
-                    <span className="text-green-600">✅ 設定済み - Discord通知が送信されます</span>
+                  {discordSettings.webhookUrl ? (
+                    <span className="text-green-600">✅ Webhook URL: 設定済み</span>
                   ) : (
-                    <span className="text-orange-600">⚠️ 未設定 - Discord通知は送信されません</span>
+                    <span className="text-orange-600">⚠️ Webhook URL: 未設定 (NEXT_PUBLIC_DISCORD_WEBHOOK_URL)</span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-600 mt-1">
+                  {discordSettings.botToken ? (
+                    <span className="text-green-600">✅ Bot Token: 設定済み (セキュリティ注意)</span>
+                  ) : (
+                    <span className="text-orange-600">⚠️ Bot Token: 未設定 (NEXT_PUBLIC_DISCORD_BOT_TOKEN)</span>
+                  )}
+                </div>
+                 <div className="text-xs text-gray-600 mt-1">
+                  {discordSettings.channelId ? (
+                    <span className="text-green-600">✅ Channel ID: 設定済み</span>
+                  ) : (
+                    <span className="text-gray-500">ℹ️ Channel ID: 未設定 (NEXT_PUBLIC_DISCORD_CHANNEL_ID)</span>
                   )}
                 </div>
               </div>
@@ -569,108 +580,8 @@ export default function EventsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Discord設定ダイアログ */}
-      <Dialog open={showDiscordSettings} onOpenChange={setShowDiscordSettings}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>Discord設定</DialogHeader>
-          <div className="space-y-4">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">🔗 Webhook URL</h4>
-              <Label>Discord Webhook URL *</Label>
-              <Input 
-                type="url"
-                value={discordSettings.webhookUrl}
-                onChange={(e) => setDiscordSettings({...discordSettings, webhookUrl: e.target.value})}
-                placeholder="https://discord.com/api/webhooks/..."
-              />
-              <p className="text-xs text-gray-600 mt-1">
-                DiscordのチャンネルでWebhookを作成し、URLをここに貼り付けてください
-              </p>
-            </div>
-
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <h4 className="font-semibold text-purple-800 mb-2">🤖 Discord Bot設定</h4>
-              <div className="space-y-3">
-                <div>
-                  <Label>Bot Token *</Label>
-                  <Input 
-                    type="password"
-                    value={discordSettings.botToken}
-                    onChange={(e) => setDiscordSettings({...discordSettings, botToken: e.target.value})}
-                    placeholder="Bot.XXXXXXXX..."
-                  />
-                  <p className="text-xs text-gray-600 mt-1">
-                    Discord Developer Portalで作成したBotのトークンを入力してください。<br/>
-                    リアクションの自動追加と参加者管理に使用されます。
-                  </p>
-                </div>
-                
-                <div>
-                  <Label>チャンネルID（オプション）</Label>
-                  <Input 
-                    value={discordSettings.channelId || ''}
-                    onChange={(e) => setDiscordSettings({...discordSettings, channelId: e.target.value})}
-                    placeholder="123456789012345678"
-                  />
-                  <p className="text-xs text-gray-600 mt-1">
-                    イベント通知を送信するチャンネルのIDを入力してください（省略可）
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-semibold text-green-800 mb-2">📋 設定状況</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  {discordSettings.webhookUrl ? (
-                    <span className="text-green-600">✅ Webhook URL設定済み</span>
-                  ) : (
-                    <span className="text-red-600">❌ Webhook URL未設定</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {discordSettings.botToken ? (
-                    <span className="text-green-600">✅ Bot Token設定済み</span>
-                  ) : (
-                    <span className="text-red-600">❌ Bot Token未設定</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {discordSettings.webhookUrl && isValidWebhookUrl(discordSettings.webhookUrl) ? (
-                    <span className="text-green-600">✅ Webhook URL形式正常</span>
-                  ) : discordSettings.webhookUrl ? (
-                    <span className="text-red-600">❌ Webhook URL形式不正</span>
-                  ) : (
-                    <span className="text-gray-500">ℹ️ Webhook URL形式未確認</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-yellow-50 rounded-lg">
-              <h4 className="font-semibold text-yellow-800 mb-2">ℹ️ 設定方法</h4>
-              <div className="text-sm text-gray-700 space-y-2">
-                <p><strong>1. Webhook URL:</strong> Discordチャンネル → 設定 → 連携サービス → ウェブフック → 新しいウェブフック</p>
-                <p><strong>2. Bot Token:</strong> Discord Developer Portal → Applications → Bot → Token</p>
-                <p><strong>3. チャンネルID:</strong> Discordで開発者ツールを有効にし、チャンネルを右クリック → IDをコピー</p>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDiscordSettings(false)}>
-              キャンセル
-            </Button>
-            <Button onClick={() => {
-              saveDiscordSettings(discordSettings); // This will now show an alert
-              setShowDiscordSettings(false);
-            }}>
-              保存
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Discord設定ダイアログ Removed */}
+      {/* <Dialog open={showDiscordSettings} onOpenChange={setShowDiscordSettings}> ... </Dialog> */}
     </div>
   );
 }
