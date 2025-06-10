@@ -1,21 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-
-    const { data } = await supabase
-      .storage
-      .from('mintell')
-      .download('characters.json');
-
-    if (!data) {
-      throw new Error('No data received');
-    }
-
-    const text = await data.text();
-    const jsonData = JSON.parse(text);
+    const filePath = path.join(process.cwd(), 'src/data/characters.json');
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    const jsonData = JSON.parse(fileContents);
 
     return NextResponse.json(jsonData);
   } catch (error) {
