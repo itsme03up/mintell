@@ -73,7 +73,7 @@ export default function PartyBuilderPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ partybuilder: savedParties }),
+        body: JSON.stringify({ parties: savedParties }), // 'partybuilder' を 'parties' に変更
       });
 
       if (!response.ok) {
