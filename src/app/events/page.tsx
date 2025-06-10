@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Member } from "@/lib/types";
+import { useEvents, useMembers, useParties } from "@/lib/useSupabaseData";
 
 interface Event {
   id: string;
@@ -43,7 +44,11 @@ interface DiscordSettings {
 }
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
+  // Supabase custom hooks
+  const { events, loading: eventsLoading, error: eventsError, createEvent, deleteEvent: deleteEventFromDB } = useEvents();
+  const { members: characters, loading: membersLoading, error: membersError } = useMembers();
+  const { parties, loading: partiesLoading, error: partiesError } = useParties();
+
   const [showModal, setShowModal] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
@@ -73,66 +78,6 @@ export default function EventsPage() {
     return webhookPattern.test(url);
   };
 
-  const initParties = async () => {
-    try { // Added try-catch for better error diagnosis
-      const response = await fetch('/api/partybuilder');
-      if (!response.ok) {
-        const errorText = await response.text(); // Get raw response text
-        console.error('Failed to fetch partybuilder data. Status:', response.status, 'Response:', errorText);
-        throw new Error(`Failed to fetch partybuilder data. Status: ${response.status}`);
-      }
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.indexOf("application/json") !== -1) {
-        const data = await response.json();
-        setParties(data);
-      } else {
-        const errorText = await response.text();
-        console.error('Received non-JSON response for partybuilder:', errorText);
-        throw new Error('Received non-JSON response for partybuilder');
-      }
-    } catch (error) {
-      console.error('Error in initParties:', error);
-      // alert('パーティデータの取得に失敗しました。詳細はコンソールを確認してください。'); // Optional: user-facing alert
-    }
-  }
-
-  const initMembers = async () => {
-    try {
-      const response = await fetch('/api/members');
-      if (!response.ok) {
-        const errorText = await response.text(); // Get raw response text
-        console.error('Failed to fetch members data. Status:', response.status, 'Response:', errorText);
-        throw new Error(`Failed to fetch members data. Status: ${response.status}`);
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.indexOf("application/json") !== -1) {
-        const membersData: Member[] = await response.json();
-        setCharacters(membersData);
-        setAvailableMembers(membersData);
-      } else {
-        const errorText = await response.text();
-        console.error('Received non-JSON response for members:', errorText);
-        throw new Error('Received non-JSON response for members');
-      }
-    } catch (error) {
-      console.error('Error fetching members:', error);
-      alert('メンバーの取得に失敗しました。詳細はコンソールを確認してください。');
-    }
-  }
-
-  useEffect(() => {
-    initParties();
-    initMembers();
-    // loadDiscordSettings(); // Removed: Settings now come from .env
-  }, []);
-
-  // Discord設定を読み込み // Removed
-  // const loadDiscordSettings = () => { ... };
-
-  // Discord設定を保存 // Removed
-  // const saveDiscordSettings = (settings: DiscordSettings) => { ... };
-
   const resetNewEventForm = () => {
     setNewEventTitle("");
     setNewEventDate("");
@@ -152,187 +97,26 @@ export default function EventsPage() {
 
   const handleAddEvent = async () => {
     if (!newEventTitle || !newEventDate) return;
-
-    // Check if essential Discord settings are available from .env
-    if (!discordSettings.webhookUrl) {
-      alert("Discord Webhook URLが環境変数に設定されていません。通知は送信できません。");
-      // Optionally, you might want to prevent event creation or proceed without Discord functionality
-    }
-    // Add a similar check for botToken if addDiscordReactions is critical and stays client-side
-    // if (!discordSettings.botToken) {
-    //   alert("Discord Bot Tokenが環境変数に設定されていません。リアクションは追加できません。");
-    // }
-
-
     setIsCreatingEvent(true);
-
     try {
+      // Prepare event data
+      const eventData = {
+        title: newEventTitle,
+        description: newEventDescription,
+        start_time: newEventDate,
+        end_time: newEventEndDate || undefined,
+        location: newEventLocation || undefined,
+        max_participants: newEventMaxParticipants?.toString(),
+        party_id: selectedPartyId,
+      };
+      // Create event via Supabase hook
+      await createEvent(eventData, eventMembers);
+      setShowModal(false);
+      // Google Calendar link
       const startDate = new Date(newEventDate);
       const endDate = newEventEndDate ? new Date(newEventEndDate) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
-
-      const newEvent: Event = {
-        id: Date.now().toString(),
-        title: newEventTitle,
-        start: newEventDate,
-        end: newEventEndDate || undefined,
-        description: newEventDescription || undefined,
-        location: newEventLocation || undefined,
-        maxParticipants: newEventMaxParticipants || undefined,
-        partyId: selectedPartyId ? parseInt(selectedPartyId, 10) : undefined,
-      };
-
-      setEvents((prev) => [...prev, newEvent]);
-
-      // Discord通知を送信
-      const sendDiscordNotification = async (event: Event, startDate: Date, endDate: Date): Promise<string | null> => {
-        const embed = {
-          title: "📅 " + event.title,
-          description: event.description || "新しいイベントが作成されました！",
-          color: 0x4285f4,
-          fields: [
-            {
-              name: "🕐 開始時間",
-              value: startDate.toLocaleString('ja-JP', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                weekday: 'short'
-              }),
-              inline: true
-            },
-            {
-              name: "🕐 終了時間", 
-              value: endDate.toLocaleString('ja-JP', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                weekday: 'short'
-              }),
-              inline: true
-            }
-          ],
-          footer: {
-            text: "下のリアクションで参加可否をお知らせください！"
-          },
-          timestamp: new Date().toISOString()
-        };
-
-        if (event.location) {
-          embed.fields.push({
-            name: "📍 場所",
-            value: event.location,
-            inline: true
-          });
-        }
-
-        if (event.maxParticipants) {
-          embed.fields.push({
-            name: "👥 最大参加者数",
-            value: event.maxParticipants + "名",
-            inline: true
-          });
-        }
-
-        // 参加メンバーがいる場合
-        if (eventMembers.length > 0) {
-          embed.fields.push({
-            name: "👨‍👩‍👧‍👦 参加予定メンバー",
-            value: eventMembers.map(m => m.fullName).join(", "),
-            inline: false
-          });
-        }
-
-        const payload = {
-          content: "🎉 **新しいイベントのお知らせ** 🎉",
-          embeds: [embed],
-          wait: true
-        };
-
-        try {
-          const response = await fetch(discordSettings.webhookUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (!response.ok) {
-            throw new Error(`Discord API Error: ${response.status} ${response.statusText}`);
-          }
-
-          const result = await response.json();
-          return result.id;
-        } catch (error) {
-          console.error('Error sending Discord notification:', error);
-          throw error;
-        }
-      };
-
-      const addDiscordReactions = async (messageId: string): Promise<void> => {
-        const reactions = ['✅', '❌', '❓'];
-        // Use NEXT_PUBLIC_DISCORD_CHANNEL_ID for targetChannelId if available, otherwise try to extract (though extraction is unreliable)
-        const targetChannelId = discordSettings.channelId || extractChannelIdFromWebhook(discordSettings.webhookUrl);
-        
-        if (!discordSettings.botToken) {
-          console.warn('Bot Token is not configured. Skipping adding reactions.');
-          alert('Bot Tokenが設定されていないため、リアクションは追加されません。');
-          return;
-        }
-        
-        if (!targetChannelId) {
-          console.warn('Channel ID not available for adding reactions');
-          return;
-        }
-
-        for (const reaction of reactions) {
-          try {
-            const response = await fetch(`https://discord.com/api/v10/channels/${targetChannelId}/messages/${messageId}/reactions/${encodeURIComponent(reaction)}/@me`, {
-              method: 'PUT',
-              headers: {
-                'Authorization': `Bot ${discordSettings.botToken}`,
-                'Content-Type': 'application/json'
-              }
-            });
-
-            if (!response.ok) {
-              console.error(`Failed to add reaction ${reaction}:`, response.status, response.statusText);
-            }
-            
-            // APIレート制限を避けるため少し待機
-            await new Promise(resolve => setTimeout(resolve, 500));
-          } catch (error) {
-            console.error(`Error adding reaction ${reaction}:`, error);
-          }
-        }
-      };
-
-      // WebhookURLからチャンネルIDを抽出（制限あり）
-      const extractChannelIdFromWebhook = (webhookUrl: string): string | null => {
-        // Webhook URLから直接チャンネルIDを取得することはできないため、
-        // ユーザーにチャンネルIDの入力を促す必要があります
-        return null;
-      };
-
-      const messageId = await sendDiscordNotification(newEvent, startDate, endDate);
-      if (messageId) {
-        await addDiscordReactions(messageId);
-        // 参加者監視を開始（実際の実装では適切なイベントリスナーを設定）
-        console.log(`Discord notification sent for event: ${newEvent.title}`);
-      }
-
-      setShowModal(false);
-
-      // Googleカレンダー連携
-      const formatGCalDate = (date: Date) =>
-        date.toISOString().replace(/[-:.]/g, "").split(".")[0] + "Z";
-
+      const formatGCalDate = (date: Date) => date.toISOString().replace(/[-:.]/g, "").split(".")[0] + "Z";
       const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(newEventTitle)}&dates=${formatGCalDate(startDate)}/${formatGCalDate(endDate)}&details=${encodeURIComponent("参加メンバー：" + eventMembers.map(m => m.fullName).join(", "))}`;
-
       window.open(gcalUrl, "_blank");
       resetNewEventForm();
     } catch (error) {
@@ -343,8 +127,12 @@ export default function EventsPage() {
     }
   };
 
-  const handleDeleteEvent = (eventId: string) => {
-    setEvents((prevEvents) => prevEvents.filter(event => event.id !== eventId));
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      await deleteEventFromDB(eventId);
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
   };
 
   const handleDragStart = (e: React.DragEvent, memberId: number) => {
