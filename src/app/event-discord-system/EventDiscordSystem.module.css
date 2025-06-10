@@ -1,0 +1,180 @@
+/* EventDiscordSystem.module.css */
+.container {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping for responsiveness */
+    gap: 20px;
+    width: 90%;
+    max-width: 1200px; /* Max width for larger screens */
+    margin: 20px auto; /* Center container and add top/bottom margin */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.column {
+    flex: 1;
+    min-width: 300px; /* Minimum width for columns */
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.column h2 {
+    color: #4285f4; /* Google Calendar blue */
+    border-bottom: 2px solid #4285f4;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+.column label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.column input[type="text"],
+.column input[type="datetime-local"],
+.column input[type="number"],
+.column input[type="password"],
+.column textarea,
+.column select {
+    width: calc(100% - 22px); /* Account for padding and border */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1rem;
+}
+
+.column textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.column button,
+.buttonLookalike {
+    background: linear-gradient(to right, #4285f4, #34a853); /* Google blue to green gradient */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: opacity 0.3s ease;
+    margin-top: 5px; /* Add some space above buttons */
+    margin-right: 5px; /* Space between buttons */
+}
+
+.buttonLookalike {
+    display: inline-block; /* Make span behave like a button for styling */
+}
+
+.column button:hover,
+.buttonLookalike:hover {
+    opacity: 0.9;
+}
+
+.column button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.errorMessage {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+.successMessage {
+    color: green;
+    font-size: 0.9rem;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+/* Environment variable section */
+.envVarsSection pre {
+    background-color: #2d2d2d; /* Dark background for code */
+    color: #f0f0f0;
+    padding: 15px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace; /* Monospace font */
+    white-space: pre-wrap; /* Wrap long lines */
+    word-break: break-all;
+    font-size: 0.9em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    .column {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+}
+
+/* Preview section */
+.previewColumn h2 {
+    color: #34a853; /* Google Calendar green */
+    border-bottom-color: #34a853;
+}
+.discordPreview {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #36393f; /* Discord dark theme background */
+    color: #dcddde; /* Discord text color */
+}
+.discordPreview .embed {
+    background-color: #2f3136; /* Discord embed background */
+    border-left: 4px solid #4285f4; /* Embed color */
+    border-radius: 4px;
+    padding: 10px;
+}
+.discordPreview .embedTitle {
+    font-weight: bold;
+    color: #fff; /* Embed title color */
+    font-size: 1.1em;
+}
+.discordPreview .embedDescription {
+    font-size: 0.95em;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    white-space: pre-wrap; /* Ensure description wraps */
+}
+.discordPreview .embedFields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Responsive fields */
+    gap: 10px;
+}
+.discordPreview .embedField {
+    margin-bottom: 8px;
+}
+.discordPreview .embedFieldName {
+    font-weight: bold;
+    color: #b9bbbe; /* Discord field name color */
+    display: block;
+    font-size: 0.9em;
+    margin-bottom: 3px;
+}
+.discordPreview .embedFieldValue {
+    font-size: 0.9em;
+}
+.discordPreview .embedFooter {
+    font-size: 0.8em;
+    color: #72767d; /* Discord footer text color */
+    margin-top: 10px;
+}
+.discordPreview .reactions button {
+    background-color: #40444b; /* Discord button background */
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    margin-right: 5px;
+    border-radius: 3px;
+    cursor: default; /* Not interactive in preview */
+}

@@ -74,30 +74,50 @@ export default function EventsPage() {
   };
 
   const initParties = async () => {
-    const response = await fetch('/api/partybuilder');
-    if (!response.ok) {
-      throw new Error('Failed to fetch members data');
+    try { // Added try-catch for better error diagnosis
+      const response = await fetch('/api/partybuilder');
+      if (!response.ok) {
+        const errorText = await response.text(); // Get raw response text
+        console.error('Failed to fetch partybuilder data. Status:', response.status, 'Response:', errorText);
+        throw new Error(`Failed to fetch partybuilder data. Status: ${response.status}`);
+      }
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        const data = await response.json();
+        setParties(data);
+      } else {
+        const errorText = await response.text();
+        console.error('Received non-JSON response for partybuilder:', errorText);
+        throw new Error('Received non-JSON response for partybuilder');
+      }
+    } catch (error) {
+      console.error('Error in initParties:', error);
+      // alert('パーティデータの取得に失敗しました。詳細はコンソールを確認してください。'); // Optional: user-facing alert
     }
-
-    const data = await response.json();
-
-    setParties(data);
   }
 
   const initMembers = async () => {
     try {
       const response = await fetch('/api/members');
       if (!response.ok) {
-        throw new Error('Failed to fetch members data');
+        const errorText = await response.text(); // Get raw response text
+        console.error('Failed to fetch members data. Status:', response.status, 'Response:', errorText);
+        throw new Error(`Failed to fetch members data. Status: ${response.status}`);
       }
 
-      const membersData: Member[] = await response.json();
-
-      setCharacters(membersData);
-      setAvailableMembers(membersData);
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        const membersData: Member[] = await response.json();
+        setCharacters(membersData);
+        setAvailableMembers(membersData);
+      } else {
+        const errorText = await response.text();
+        console.error('Received non-JSON response for members:', errorText);
+        throw new Error('Received non-JSON response for members');
+      }
     } catch (error) {
       console.error('Error fetching members:', error);
-      alert('メンバーの取得に失敗しました。');
+      alert('メンバーの取得に失敗しました。詳細はコンソールを確認してください。');
     }
   }
 
