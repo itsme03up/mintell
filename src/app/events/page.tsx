@@ -161,7 +161,8 @@ export default function EventsPage() {
 
   const handlePartySelect = (partyIdStr: string) => {
     setSelectedPartyId(partyIdStr);
-    const party = hookParties.find((p) => p.id === partyIdStr);
+    const partyIdNum = parseInt(partyIdStr, 10);
+    const party = hookParties.find((p) => p.id === partyIdNum);
     if (party) {
       const membersInParty = hookMembers.filter((c) => party.members?.includes(c.id));
       const remainingAvailable = hookMembers.filter((c) => !party.members?.includes(c.id));
