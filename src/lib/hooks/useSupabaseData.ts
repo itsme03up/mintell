@@ -1,9 +1,10 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
+import { Member, Party } from '../types'
 
 // Custom hook for events with RSVPs
-export const useEvents = () => {
+export const useEvents = (): { events: any[]; loading: boolean; error: string | null; createEvent: Function; deleteEvent: Function; refetch: Function } => {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -97,8 +98,8 @@ export const useEvents = () => {
 }
 
 // Custom hook for members
-export const useMembers = () => {
-  const [members, setMembers] = useState([])
+export const useMembers = (): { members: Member[]; loading: boolean; error: string | null } => {
+  const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -122,8 +123,8 @@ export const useMembers = () => {
 }
 
 // Custom hook for parties
-export const useParties = () => {
-  const [parties, setParties] = useState([])
+export const useParties = (): { parties: Party[]; loading: boolean; error: string | null } => {
+  const [parties, setParties] = useState<Party[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 

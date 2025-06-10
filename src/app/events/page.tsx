@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Member } from "@/lib/types";
-import { useEvents, useMembers, useParties } from "@/lib/useSupabaseData";
+import { useEvents, useMembers, useParties } from "@/lib/hooks/useSupabaseData";
 
 interface Event {
   id: string;
@@ -46,8 +46,8 @@ interface DiscordSettings {
 export default function EventsPage() {
   // Supabase custom hooks
   const { events, loading: eventsLoading, error: eventsError, createEvent, deleteEvent: deleteEventFromDB } = useEvents();
-  const { members: characters, loading: membersLoading, error: membersError } = useMembers();
-  const { parties, loading: partiesLoading, error: partiesError } = useParties();
+  const { members: hookMembers, loading: membersLoading, error: membersError } = useMembers();
+  const { parties: hookParties, loading: partiesLoading, error: partiesError } = useParties();
 
   const [showModal, setShowModal] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState("");
@@ -57,10 +57,8 @@ export default function EventsPage() {
   const [newEventLocation, setNewEventLocation] = useState("");
   const [newEventMaxParticipants, setNewEventMaxParticipants] = useState<number | undefined>(undefined);
   const [selectedPartyId, setSelectedPartyId] = useState<string | undefined>(undefined);
-  const [characters, setCharacters] = useState<Member[]>([]);
   const [availableMembers, setAvailableMembers] = useState<Member[]>([]);
   const [eventMembers, setEventMembers] = useState<Member[]>([]);
-  const [parties, setParties] = useState<Party[]>([]);
   
   // Discord関連のstate
   const [discordSettings, setDiscordSettings] = useState<DiscordSettings>({
@@ -87,7 +85,7 @@ export default function EventsPage() {
     setNewEventMaxParticipants(undefined);
     setSelectedPartyId(undefined);
     setEventMembers([]); // Reset event members
-    setAvailableMembers(characters); // Reset available members
+    setAvailableMembers(hookMembers); // Reset available members
   };
 
   const handleDateClick = (info: { dateStr: string }) => {
@@ -163,19 +161,22 @@ export default function EventsPage() {
 
   const handlePartySelect = (partyIdStr: string) => {
     setSelectedPartyId(partyIdStr);
-
-    const party = parties.find((p) => p.id === partyIdStr);
+    const party = hookParties.find((p) => p.id === partyIdStr);
     if (party) {
-      const membersInParty = characters.filter((c) => party.members?.includes(c.id));
-      const remainingAvailable = characters.filter((c) => !party.members?.includes(c.id));
+      const membersInParty = hookMembers.filter((c) => party.members?.includes(c.id));
+      const remainingAvailable = hookMembers.filter((c) => !party.members?.includes(c.id));
       setEventMembers(membersInParty);
       setAvailableMembers(remainingAvailable);
     } else {
-      // If partyIdStr is undefined or party not found, reset members
       setEventMembers([]);
-      setAvailableMembers(characters);
+      setAvailableMembers(hookMembers);
     }
   };
+
+  // Initialize available members when hookMembers changes
+  useEffect(() => {
+    setAvailableMembers(hookMembers);
+  }, [hookMembers]);
 
   return (
     <div className="container mx-auto py-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
@@ -283,7 +284,7 @@ export default function EventsPage() {
                 <Select value={selectedPartyId} onValueChange={handlePartySelect}>
                   <SelectTrigger><SelectValue placeholder="選択してください" /></SelectTrigger>
                   <SelectContent>
-                    {parties.map((p) => (
+                    {hookParties.map((p) => (
                       <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>
                     ))}
                   </SelectContent>

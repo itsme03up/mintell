@@ -35,3 +35,9 @@ export interface Member {
   mainJob: string;
   progress: string;
 }
+// Party type for event party selections
+export interface Party {
+  id: number;
+  name: string;
+  members?: number[];
+}
