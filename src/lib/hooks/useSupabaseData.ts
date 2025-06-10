@@ -1,6 +1,15 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react'
-import { supabase } from '../supabaseClient'
+import { createClient } from '../supabase'
+
+// Helper to get supabase client instance
+let supabase: any = null;
+async function getSupabase() {
+  if (!supabase) {
+    supabase = await createClient();
+  }
+  return supabase;
+}
 import { Member, Party } from '../types'
 
 // Custom hook for events with RSVPs
@@ -12,6 +21,7 @@ export const useEvents = (): { events: any[]; loading: boolean; error: string | 
   const fetchEvents = async () => {
     try {
       setLoading(true)
+      const supabase = await getSupabase();
       const { data, error: err } = await supabase
         .from('events')
         .select(
@@ -31,6 +41,7 @@ export const useEvents = (): { events: any[]; loading: boolean; error: string | 
   const createEvent = async (eventData, selectedMembers = []) => {
     try {
       setLoading(true)
+      const supabase = await getSupabase();
       const { data: event, error: eventError } = await supabase
         .from('events')
         .insert({
@@ -70,6 +81,7 @@ export const useEvents = (): { events: any[]; loading: boolean; error: string | 
   const deleteEvent = async (eventId) => {
     try {
       setLoading(true)
+      const supabase = await getSupabase();
       const { error: delError } = await supabase
         .from('events')
         .delete()
@@ -85,13 +97,17 @@ export const useEvents = (): { events: any[]; loading: boolean; error: string | 
   }
 
   useEffect(() => {
-    fetchEvents()
-    const subscription = supabase
-      .channel('events')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, fetchEvents)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'event_rsvps' }, fetchEvents)
-      .subscribe()
-    return () => subscription.unsubscribe()
+    let subscription: any;
+    (async () => {
+      await fetchEvents();
+      const supabase = await getSupabase();
+      subscription = supabase
+        .channel('events')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, fetchEvents)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'event_rsvps' }, fetchEvents)
+        .subscribe();
+    })();
+    return () => subscription && subscription.unsubscribe();
   }, [])
 
   return { events, loading, error, createEvent, deleteEvent, refetch: fetchEvents }
@@ -106,6 +122,7 @@ export const useMembers = (): { members: Member[]; loading: boolean; error: stri
   useEffect(() => {
     const fetchMembers = async () => {
       try {
+        const supabase = await getSupabase();
         const { data, error: err } = await supabase.from('members').select('*').order('full_name')
         if (err) throw err
         setMembers(data || [])
@@ -131,6 +148,7 @@ export const useParties = (): { parties: Party[]; loading: boolean; error: strin
   useEffect(() => {
     const fetchParties = async () => {
       try {
+        const supabase = await getSupabase();
         const { data, error: err } = await supabase
           .from('parties')
           .select(`*, party_members(member_id, role, members(id, full_name))`)
@@ -161,6 +179,7 @@ const sendDiscordNotification = async (event, participants = []) => {
     if (!res.ok) throw new Error('Discord notification failed')
     const result = await res.json()
     if (result.id) {
+      const supabase = await getSupabase();
       await supabase.from('events').update({ discord_message_id: result.id }).eq('id', event.id)
     }
     return result
