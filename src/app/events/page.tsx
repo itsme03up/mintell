@@ -123,6 +123,8 @@ export default function EventsPage() {
     localStorage.setItem('discordBotToken', settings.botToken);
     localStorage.setItem('discordChannelId', settings.channelId || '');
     setDiscordSettings(settings);
+    // User feedback for successful save
+    alert("Discord設定が保存されました。"); 
   };
 
   const resetNewEventForm = () => {
@@ -661,7 +663,7 @@ export default function EventsPage() {
               キャンセル
             </Button>
             <Button onClick={() => {
-              saveDiscordSettings(discordSettings);
+              saveDiscordSettings(discordSettings); // This will now show an alert
               setShowDiscordSettings(false);
             }}>
               保存
