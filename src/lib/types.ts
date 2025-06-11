@@ -36,8 +36,9 @@ export interface Member {
   progress: string;
 }
 // Party type for event party selections
-export interface Party {
+interface Party {
   id: number;
   name: string;
   members?: number[];
+  party_members?: Array<{ members: Member | null }>;
 }
